@@ -40,68 +40,74 @@ export default async (req, context) => {
     });
   }
 
-  // Fetch the listing page content (server-side, no CORS issues)
+  // Fetch the listing page content (server-side, no CORS issues) or use provided HTML
   let html = '';
-  try {
-    const pageResponse = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Referer': 'https://www.google.com/',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'cross-site',
-        'Sec-Fetch-User': '?1',
-        'Upgrade-Insecure-Requests': '1',
-      },
-      redirect: 'follow'
-    });
+  let usedProvidedHtml = false;
+  if (body.html && typeof body.html === 'string' && body.html.length > 100) {
+    html = body.html;
+    usedProvidedHtml = true;
+  } else {
+    try {
+      const pageResponse = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Referer': 'https://www.google.com/',
+          'Sec-Fetch-Dest': 'document',
+          'Sec-Fetch-Mode': 'navigate',
+          'Sec-Fetch-Site': 'cross-site',
+          'Sec-Fetch-User': '?1',
+          'Upgrade-Insecure-Requests': '1',
+        },
+        redirect: 'follow'
+      });
 
-    if (!pageResponse.ok) {
-      throw new Error(`Failed to fetch page: ${pageResponse.status}`);
+      if (!pageResponse.ok) {
+        throw new Error(`Failed to fetch page: ${pageResponse.status}`);
+      }
+
+      html = await pageResponse.text();
+
+      // Basic cleaning to reduce noise and size (remove scripts, styles, etc.)
+      html = html.replace(/<script[\s\S]*?<\/script>/gi, '')
+                 .replace(/<style[\s\S]*?<\/style>/gi, '')
+                 .replace(/<noscript[\s\S]*?<\/noscript>/gi, '')
+                 .replace(/\s+/g, ' ')
+                 .trim();
+
+      // Detect if likely blocked by anti-bot (Cloudflare, etc.)
+      const lower = html.toLowerCase();
+      const isBlocked = html.length < 3000 ||
+                        lower.includes('cf-challenge') ||
+                        lower.includes('challenge-platform') ||
+                        lower.includes('attention required') ||
+                        lower.includes('just a moment') ||
+                        lower.includes('cloudflare') ||
+                        lower.includes('access denied') ||
+                        lower.includes('bot detected') ||
+                        lower.includes('captcha');
+
+      if (isBlocked) {
+        console.warn('Possible block page detected for', url);
+      }
+
+      // Truncate if extremely long to stay under token limits
+      const maxHtmlLength = 15000;
+      if (html.length > maxHtmlLength) {
+        html = html.substring(0, maxHtmlLength) + '\n... [content truncated for length]';
+      }
+
+    } catch (fetchErr) {
+      console.error('Fetch error:', fetchErr);
+      return new Response(JSON.stringify({ 
+        error: 'Could not fetch the listing page. The site might block scraping or the URL is invalid. Try providing HTML content instead (open page, view source, paste main sections).' 
+      }), { 
+        status: 502,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
-
-    html = await pageResponse.text();
-
-    // Basic cleaning to reduce noise and size (remove scripts, styles, etc.)
-    html = html.replace(/<script[\s\S]*?<\/script>/gi, '')
-               .replace(/<style[\s\S]*?<\/style>/gi, '')
-               .replace(/<noscript[\s\S]*?<\/noscript>/gi, '')
-               .replace(/\s+/g, ' ')
-               .trim();
-
-    // Detect if likely blocked by anti-bot (Cloudflare, etc.)
-    const lower = html.toLowerCase();
-    const isBlocked = html.length < 3000 ||
-                      lower.includes('cf-challenge') ||
-                      lower.includes('challenge-platform') ||
-                      lower.includes('attention required') ||
-                      lower.includes('just a moment') ||
-                      lower.includes('cloudflare') ||
-                      lower.includes('access denied') ||
-                      lower.includes('bot detected') ||
-                      lower.includes('captcha');
-
-    if (isBlocked) {
-      console.warn('Possible block page detected for', url);
-    }
-
-    // Truncate if extremely long to stay under token limits
-    const maxHtmlLength = 15000;
-    if (html.length > maxHtmlLength) {
-      html = html.substring(0, maxHtmlLength) + '\n... [content truncated for length]';
-    }
-
-  } catch (fetchErr) {
-    console.error('Fetch error:', fetchErr);
-    return new Response(JSON.stringify({ 
-      error: 'Could not fetch the listing page. The site might block scraping or the URL is invalid.' 
-    }), { 
-      status: 502,
-      headers: { 'Content-Type': 'application/json' }
-    });
   }
 
   // Compact but effective system prompt for structured extraction
@@ -169,7 +175,11 @@ Your job is to turn the provided realtor.ca HTML into clean, structured JSON tha
 
 The user will provide the listing URL and the raw HTML content below. Extract everything possible directly from it.`;
 
-  const blockNote = isBlocked ? '\n\nNOTE: The fetched page content appears to be blocked or heavily limited by the site\'s anti-bot protection (common on realtor.ca). Extract whatever is possible from the limited content, set most fields to null if unclear, and in aiAnalysis include a clear note about the fetch being blocked and recommend the user try the manual "Paste AI output" method with the master prompt in a Grok chat (which may have better browsing access) or try a different listing.' : '';
+  const blockNote = usedProvidedHtml 
+    ? '\n\nNOTE: Using user-provided HTML content (bypassed server fetch, which often gets blocked).' 
+    : (typeof isBlocked !== 'undefined' && isBlocked 
+        ? '\n\nNOTE: The fetched page content appears to be blocked or heavily limited by the site\'s anti-bot protection (common on realtor.ca). Extract whatever is possible from the limited content, set most fields to null if unclear, and in aiAnalysis include a clear note about the fetch being blocked and recommend the user try the manual "Paste AI output" method with the master prompt in a Grok chat (which may have better browsing access) or provide page HTML manually next time.' 
+        : '');
 
   const userMessage = `Listing URL: ${url}
 
