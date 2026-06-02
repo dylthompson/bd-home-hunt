@@ -77,7 +77,7 @@ export default async (req, context) => {
                  .replace(/\s+/g, ' ')
                  .trim();
 
-      // Detect if likely blocked by anti-bot (Cloudflare, etc.)
+      // Detect if likely blocked by anti-bot (Cloudflare, Incapsula, etc.)
       const lower = html.toLowerCase();
       const isBlocked = html.length < 3000 ||
                         lower.includes('cf-challenge') ||
@@ -85,12 +85,64 @@ export default async (req, context) => {
                         lower.includes('attention required') ||
                         lower.includes('just a moment') ||
                         lower.includes('cloudflare') ||
+                        lower.includes('incapsula') ||
+                        lower.includes('incident id') ||
                         lower.includes('access denied') ||
                         lower.includes('bot detected') ||
-                        lower.includes('captcha');
+                        lower.includes('captcha') ||
+                        lower.includes('security service');
 
       if (isBlocked) {
         console.warn('Possible block page detected for', url);
+        // Return early with blocked info so frontend can guide user to HTML paste fallback
+        // without wasting Grok tokens on garbage
+        const blockedResponse = {
+          id: 'blocked-' + Date.now(),
+          sourceUrl: url,
+          address: 'Blocked by security service',
+          fullAddress: null,
+          price: null,
+          priceDisplay: null,
+          bedrooms: null,
+          bathrooms: null,
+          sqftRange: null,
+          lotSize: null,
+          yearBuilt: null,
+          propertyType: null,
+          style: null,
+          ownership: null,
+          annualTaxes: null,
+          water: null,
+          sewer: null,
+          heating: null,
+          cooling: null,
+          parking: null,
+          basement: null,
+          features: [],
+          description: null,
+          locationNotes: null,
+          nearbyAmenities: [],
+          daysOnMarket: null,
+          agent: null,
+          photoUrls: [],
+          virtualTourUrl: null,
+          aiAnalysis: {
+            budgetFit: 'N/A - page fetch blocked',
+            locationScore: 0,
+            newBuildScore: 0,
+            lifestyleScore: 0,
+            overallMatchScore: 0,
+            summary: 'Listing page blocked by Incapsula (or similar) security service. No useful HTML content could be retrieved for extraction.',
+            pros: [],
+            cons: ['Page protected by anti-bot service (Incapsula incident ID present in some responses)'],
+            recommendedAction: 'Open the listing in your browser, copy the main content or "View Page Source" and paste the HTML into the optional field below the URL for a retry. Alternatively, use the manual "Paste AI output" flow with the master prompt in a Grok chat (chat sessions sometimes bypass blocks better).'
+          },
+          _blocked: true,
+          _message: 'Fetch blocked by security service. Use HTML paste fallback or manual method.'
+        };
+        return new Response(JSON.stringify(blockedResponse), {
+          headers: { 'Content-Type': 'application/json' }
+        });
       }
 
       // Truncate if extremely long to stay under token limits

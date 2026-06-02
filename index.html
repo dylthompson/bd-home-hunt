@@ -1815,6 +1815,22 @@
           throw new Error(result.error || 'Analysis failed');
         }
 
+        // Handle blocked responses gracefully
+        if (result._blocked || (result.aiAnalysis && result.aiAnalysis.summary && result.aiAnalysis.summary.toLowerCase().includes('blocked'))) {
+          if (statusEl) statusEl.textContent = 'Fetch blocked by security service. Using the provided HTML (if any) or try the fallback.';
+          // Focus the HTML textarea to encourage fallback
+          const htmlTa = document.getElementById('listing-html');
+          if (htmlTa) {
+            htmlTa.focus();
+            htmlTa.placeholder = 'Paste HTML here from browser View Page Source to bypass the block...';
+          }
+          // Still allow import of the partial data if user wants
+          if (!confirm('The page fetch was blocked by Incapsula/security. The result has limited data. Import the partial card anyway, or cancel and try pasting HTML content?')) {
+            if (statusEl) statusEl.textContent = '';
+            return;
+          }
+        }
+
         // Reuse the existing import logic
         let parsed = result;
 
