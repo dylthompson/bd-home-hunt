@@ -40,6 +40,14 @@
       box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
     }
 
+    .delete-btn {
+      opacity: 0.6;
+      transition: opacity 0.15s ease, background 0.15s ease;
+    }
+    .property-card:hover .delete-btn {
+      opacity: 1;
+    }
+
     .section-header {
       font-size: 0.75rem;
       letter-spacing: 0.05em;
@@ -694,6 +702,8 @@
       <div class="px-5 sm:px-6 py-3 border-t bg-white flex-shrink-0 flex items-center gap-2 text-xs">
         <button onclick="promoteAiPillsToPersonal()" 
                 class="px-3 py-1.5 rounded-2xl border text-slate-600 hover:bg-slate-50 font-medium">Promote AI pros/cons to our feedback (syncs live)</button>
+        <button onclick="deleteProperty(currentPropertyId)" 
+                class="px-3 py-1.5 rounded-2xl border border-red-200 text-red-600 hover:bg-red-50 font-medium">Delete</button>
         <div class="flex-1"></div>
         <button onclick="closeDetailModal()" class="px-4 py-1.5 font-semibold">Done</button>
       </div>
@@ -807,6 +817,17 @@
     }
 
     function handleRealtimeUpdate(payload) {
+      if (payload.eventType === 'DELETE' && payload.old?.id) {
+        const deletedId = payload.old.id;
+        const idx = properties.findIndex(p => p.id === deletedId);
+        if (idx > -1) {
+          properties.splice(idx, 1);
+          updateHeaderStats();
+          filterProperties();
+        }
+        return;
+      }
+
       const newRow = payload.new;
       if (!newRow || newRow.hunt_id !== HUNT_ID) return;
 
@@ -1116,7 +1137,7 @@
 
     function createPropertyCard(prop) {
       const div = document.createElement('div');
-      div.className = `property-card bg-white border border-slate-200 rounded-3xl overflow-hidden cursor-pointer premium-shadow`;
+      div.className = `property-card relative bg-white border border-slate-200 rounded-3xl overflow-hidden cursor-pointer premium-shadow`;
       
       const ud = prop.userData || {};
       const ai = prop.aiAnalysis || {};
@@ -1148,6 +1169,11 @@
               ${score}/10 match
             </div>
             ${isNewBuild ? `<div class="px-2.5 py-px bg-white/90 text-emerald-700 text-[10px] font-bold rounded-full">2020 NEWER</div>` : ''}
+          </div>
+
+          <div class="absolute top-2 left-2">
+            <button onclick="event.stopImmediatePropagation(); deleteProperty('${prop.id}');" 
+                    class="delete-btn bg-white/90 hover:bg-red-100 text-red-600 hover:text-red-700 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shadow" title="Delete this property">×</button>
           </div>
           
           <div class="absolute bottom-3 left-3 right-3 flex items-end justify-between text-white">
@@ -1523,6 +1549,38 @@
       await syncPropertyToSupabase(prop);
       renderShowings(prop);
       renderGrid();
+    }
+
+    async function deleteProperty(id) {
+      if (!confirm('Delete this property forever? This cannot be undone and will sync to the other person.')) return;
+
+      const idx = properties.findIndex(p => p.id === id);
+      if (idx > -1) {
+        properties.splice(idx, 1);
+      }
+
+      if (isSupabaseEnabled && supabaseClient) {
+        try {
+          await supabaseClient
+            .from('hunt_properties')
+            .delete()
+            .eq('id', id)
+            .eq('hunt_id', HUNT_ID);
+        } catch (e) {
+          console.error('Supabase delete failed', e);
+          showToast('Deleted locally but cloud sync failed. Try again later.');
+        }
+      }
+
+      savePropertiesLocal();
+
+      if (currentPropertyId === id) {
+        currentPropertyId = null;
+        closeDetailModal();
+      }
+
+      updateHeaderStats();
+      filterProperties();
     }
 
     // ============== FEEDBACK (STARS + PILLS) ==============
