@@ -391,7 +391,7 @@
           <div class="section-header mb-1.5">Or paste a realtor.ca URL (new!)</div>
           <input type="text" id="listing-url" placeholder="https://www.realtor.ca/real-estate/29727693/14-sunset-place-huron-kinloss"
                  class="w-full sleek-input text-sm p-3 rounded-2xl border focus:ring-1 mb-2">
-          <textarea id="listing-html" rows="3" placeholder="Optional: if URL fetch fails (common due to blocks), open the listing in browser, View Page Source, copy relevant HTML/text here and paste above URL"
+          <textarea id="listing-html" rows="3" placeholder="Optional: if blocked (like Incapsula), open listing in browser → right-click → View Page Source → copy (or just the main description/features section) and paste here + the URL above. This bypasses the fetch."
                     class="w-full sleek-input text-xs font-mono p-2 rounded-2xl border focus:ring-1"></textarea>
           <button onclick="analyzeListingUrl()" 
                   class="mt-2 w-full py-2.5 rounded-2xl bg-teal-700 hover:bg-teal-800 active:bg-teal-900 transition text-white text-sm font-semibold flex items-center justify-center gap-x-2">
