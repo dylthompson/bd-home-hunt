@@ -1,0 +1,2114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BD • Kincardine Home Hunt</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏠</text></svg>">
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BD Hunt">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Supabase client for realtime collaboration -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
+    
+    :root {
+      --primary: #0F172A;
+    }
+    
+    body {
+      font-family: 'Inter', system_ui, sans-serif;
+    }
+    
+    .font-display {
+      font-family: 'Space Grotesk', 'Inter', system_ui, sans-serif;
+      font-weight: 600;
+    }
+
+    .property-card {
+      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+                  box-shadow 0.2s cubic-bezier(0.4, 0.0, 0.2, 1),
+                  border-color 0.2s;
+    }
+    
+    .property-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+    }
+
+    .section-header {
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: #64748b;
+    }
+
+    .stat-pill {
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .fit-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 1px 9px;
+      border-radius: 9999px;
+    }
+
+    .nav-active {
+      background: #0F172A;
+      color: white;
+      border-radius: 9999px;
+    }
+
+    .modal {
+      animation: modalPop 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    @keyframes modalPop {
+      from { opacity: 0; transform: translateY(20px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .tab-button {
+      position: relative;
+      padding-bottom: 8px;
+      font-weight: 600;
+      color: #64748b;
+      transition: all 0.1s ease;
+    }
+    
+    .tab-button.active {
+      color: #0F172A;
+    }
+    
+    .tab-button.active:after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: #0F172A;
+      border-radius: 3px;
+    }
+
+    .premium-shadow {
+      box-shadow: 0 10px 15px -3px rgb(15 23 42 / 0.08), 
+                  0 4px 6px -4px rgb(15 23 42 / 0.08);
+    }
+
+    .listing-photo {
+      background-size: cover;
+      background-position: center;
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .property-card:hover .listing-photo {
+      transform: scale(1.03);
+    }
+
+    .data-value {
+      font-weight: 600;
+      color: #0F172A;
+    }
+
+    .star {
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+    
+    .star:hover {
+      transform: scale(1.15);
+    }
+
+    .pros-pill, .cons-pill {
+      font-size: 0.75rem;
+      padding: 2px 10px 2px 10px;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .pros-pill {
+      background: #ECFDF5;
+      color: #166534;
+      border: 1px solid #A7F3D0;
+    }
+    
+    .cons-pill {
+      background: #FEF2F2;
+      color: #991B1B;
+      border: 1px solid #FECACA;
+    }
+
+    .metric-score {
+      font-size: 1.25rem;
+      line-height: 1;
+      font-weight: 700;
+    }
+
+    .sleek-input {
+      background: white;
+      border: 1px solid #CBD5E1;
+      transition: all 0.1s;
+    }
+    
+    .sleek-input:focus {
+      outline: none;
+      border-color: #0F172A;
+      box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+    }
+
+    .app-container {
+      max-width: 1280px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .dashboard-header {
+      background: linear-gradient(to right, #0F172A, #1E2937);
+    }
+
+    .subtle-grid {
+      background-image: 
+        linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+  <!-- Top Navigation -->
+  <div class="border-b border-slate-200 bg-white sticky top-0 z-50">
+    <div class="app-container px-4 sm:px-6">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center gap-x-3">
+          <div class="flex items-center gap-x-2.5">
+            <div class="w-9 h-9 bg-slate-900 rounded-2xl flex items-center justify-center shadow-inner">
+              <i class="fa-solid fa-house text-white text-xl"></i>
+            </div>
+            <div>
+              <div class="font-display text-2xl tracking-tighter font-semibold flex items-center gap-2">
+                BD Hunt
+                <span id="live-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">LIVE</span>
+              </div>
+              <div class="text-[10px] text-slate-500 -mt-1 font-medium tracking-[1px]">KINCARDINE • 2026</div>
+            </div>
+          </div>
+          <div class="hidden sm:flex items-center gap-x-1.5 pl-3 border-l border-slate-200">
+            <div class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold flex items-center gap-x-1">
+              <i class="fa-solid fa-check-double text-xs"></i>
+              <span>Pre-approved $950k CAD</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-x-2">
+          <!-- Couple avatars -->
+          <div class="flex -space-x-1 items-center">
+            <div class="w-7 h-7 rounded-full bg-slate-800 ring-2 ring-white flex items-center justify-center text-[10px] text-white font-bold">D</div>
+            <div class="w-7 h-7 rounded-full bg-teal-700 ring-2 ring-white flex items-center justify-center text-[10px] text-white font-bold">B</div>
+          </div>
+          <div class="hidden md:block text-sm">
+            <span class="font-semibold">Bronwynne</span> <span class="text-slate-400">&amp;</span> <span class="font-semibold">Dylan</span>
+          </div>
+
+          <button onclick="exportData()" 
+                  class="ml-2 flex items-center gap-x-2 px-3.5 py-1.5 text-xs font-semibold rounded-2xl border border-slate-300 hover:bg-slate-100 active:bg-slate-200 transition-colors">
+            <i class="fa-solid fa-download text-xs"></i>
+            <span class="hidden sm:inline">Export JSON</span>
+          </button>
+
+          <button onclick="downloadDataAsJson()" 
+                  class="flex items-center gap-x-2 px-3.5 py-1.5 text-xs font-semibold rounded-2xl border border-teal-600 text-teal-700 hover:bg-teal-50 active:bg-teal-100 transition-colors"
+                  title="Download data.json — perfect for uploading to GitHub Pages, Netlify, or any static host as the shared source of truth">
+            <i class="fa-solid fa-file-export text-xs"></i>
+            <span class="hidden sm:inline">data.json</span>
+          </button>
+          
+          <button onclick="showAddModal()" 
+                  class="flex items-center gap-x-2 px-4 py-1.5 text-xs font-semibold rounded-2xl bg-slate-900 hover:bg-black text-white transition-colors shadow">
+            <i class="fa-solid fa-plus"></i>
+            <span class="hidden sm:inline font-semibold">Add Listing</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hero / Context Bar -->
+  <div class="app-container px-4 sm:px-6 pt-6 pb-4">
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-y-3">
+      <div>
+        <div class="flex items-center gap-x-3">
+          <h1 class="font-display text-4xl tracking-tighter font-semibold">Kincardine &amp; 20 km</h1>
+          <div class="px-3 py-1 rounded-3xl bg-white border border-slate-200 text-xs font-semibold text-slate-600 flex items-center gap-1.5 shadow-sm">
+            <i class="fa-solid fa-map-marker-alt text-teal-600"></i>
+            <span>Focus area</span>
+          </div>
+        </div>
+        <p class="text-slate-600 mt-1 text-[15px]">Newer builds • Out-of-town preference • First home for two <span class="text-emerald-600 font-medium">• Live sync enabled</span></p>
+      </div>
+      
+      <div class="flex items-center gap-2 text-sm">
+        <div class="px-4 py-2 bg-white rounded-3xl border border-slate-200 flex items-center gap-x-4 text-sm">
+          <div>
+            <span class="font-semibold text-emerald-600" id="stat-active">1</span>
+            <span class="text-slate-500"> active</span>
+          </div>
+          <div class="h-3 w-px bg-slate-200"></div>
+          <div>
+            <span class="font-semibold" id="stat-viewed">0</span>
+            <span class="text-slate-500"> viewed</span>
+          </div>
+          <div class="h-3 w-px bg-slate-200"></div>
+          <div>
+            <span class="font-semibold text-amber-600" id="stat-avg">—</span>
+            <span class="text-slate-500"> avg rank</span>
+          </div>
+        </div>
+
+        <!-- Supabase connection status -->
+        <div id="supabase-status" 
+             class="px-3 py-1.5 bg-white rounded-3xl border border-slate-200 text-xs font-semibold flex items-center gap-x-1.5 cursor-pointer hover:bg-slate-50"
+             onclick="window.BD_HUNT && window.BD_HUNT.forceResync && window.BD_HUNT.forceResync()"
+             title="Click to force resync from cloud">
+          <span id="supabase-dot" class="inline-block w-2 h-2 rounded-full bg-gray-400"></span>
+          <span id="supabase-text" class="text-slate-500">Supabase</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="app-container px-4 sm:px-6 pb-4">
+    <div class="flex flex-wrap items-center gap-2">
+      <!-- Search -->
+      <div class="relative flex-1 min-w-[220px] max-w-xs">
+        <i class="fa-solid fa-search absolute left-3.5 top-3 text-slate-400 text-sm"></i>
+        <input id="search-input" type="text" placeholder="Search address or MLS..." 
+               onkeyup="filterProperties()"
+               class="w-full bg-white border border-slate-200 focus:border-slate-400 pl-9 pr-4 py-2 text-sm rounded-3xl outline-none">
+      </div>
+
+      <!-- Quick filters -->
+      <div class="flex items-center gap-1.5 flex-wrap">
+        <button onclick="setQuickFilter('all')" id="filter-all"
+                class="px-4 py-1.5 text-xs font-semibold rounded-3xl bg-slate-900 text-white">All</button>
+        <button onclick="setQuickFilter('new')" id="filter-new"
+                class="px-4 py-1.5 text-xs font-semibold rounded-3xl border border-slate-200 hover:bg-white">New (2018+)</button>
+        <button onclick="setQuickFilter('outoftown')" id="filter-out"
+                class="px-4 py-1.5 text-xs font-semibold rounded-3xl border border-slate-200 hover:bg-white">Out of town</button>
+        <button onclick="setQuickFilter('unviewed')" id="filter-unviewed"
+                class="px-4 py-1.5 text-xs font-semibold rounded-3xl border border-slate-200 hover:bg-white">Not viewed</button>
+        
+        <select id="sort-select" onchange="filterProperties()" 
+                class="text-xs font-semibold border border-slate-200 bg-white rounded-3xl px-3 py-1.5 outline-none cursor-pointer">
+          <option value="match">Best AI Match</option>
+          <option value="price-low">Price: Low to High</option>
+          <option value="price-high">Price: High to Low</option>
+          <option value="newest">Newest builds</option>
+          <option value="recent">Recently added</option>
+        </select>
+      </div>
+
+      <div class="flex-1"></div>
+
+      <button onclick="resetFilters()" 
+              class="text-xs px-3 py-1.5 text-slate-500 hover:text-slate-700 font-medium flex items-center gap-1">
+        <i class="fa-solid fa-undo text-xs"></i>
+        <span>Reset</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Property Grid -->
+  <div class="app-container px-4 sm:px-6 pb-12">
+    <div id="property-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <!-- Populated by JS -->
+    </div>
+
+    <!-- Empty state -->
+    <div id="empty-state" class="hidden mt-8 text-center py-10 border border-dashed border-slate-200 rounded-3xl bg-white">
+      <i class="fa-solid fa-home text-3xl text-slate-300"></i>
+      <p class="mt-3 text-slate-500">No properties match your filters yet.</p>
+      <button onclick="resetFilters()" class="mt-3 text-sm text-teal-700 font-semibold">Clear filters</button>
+    </div>
+  </div>
+
+  <!-- Add Listing Modal -->
+  <div id="add-modal" onclick="if (event.target.id === 'add-modal') hideAddModal()" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-end sm:items-center justify-center">
+    <div onclick="event.stopImmediatePropagation()" 
+         class="bg-white w-full sm:w-[520px] sm:rounded-3xl sm:m-4 rounded-t-3xl p-6 shadow-2xl">
+      <div class="flex justify-between items-center mb-5">
+        <div>
+          <div class="font-semibold text-xl tracking-tight">Add new listing</div>
+          <div class="text-xs text-slate-500">Paste JSON or a realtor.ca URL (Grok will analyze it)</div>
+        </div>
+        <button onclick="hideAddModal()" class="text-2xl leading-none text-slate-400 hover:text-slate-600">&times;</button>
+      </div>
+
+      <div class="space-y-4">
+        <!-- Primary method -->
+        <div>
+          <div class="section-header mb-1.5">Paste AI output (recommended)</div>
+          <textarea id="json-paste" rows="6" placeholder="Paste the full ```json property-data ... ``` block here"
+                    class="w-full sleek-input text-xs font-mono p-3 rounded-2xl border focus:ring-1"></textarea>
+          <button onclick="importFromJsonPaste()" 
+                  class="mt-2 w-full py-2.5 rounded-2xl bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 transition text-white text-sm font-semibold flex items-center justify-center gap-x-2">
+            <i class="fa-solid fa-magic"></i>
+            <span>Import &amp; Add Property (syncs live)</span>
+          </button>
+        </div>
+
+        <div class="pt-1">
+          <div class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-1.5">Need the prompt?</div>
+          <button onclick="copyMasterPrompt()" 
+                  class="w-full flex items-center justify-center gap-2 text-sm border border-slate-300 hover:bg-slate-50 py-2 rounded-2xl font-medium">
+            <i class="fa-solid fa-copy"></i>
+            <span>Copy Master Prompt to clipboard</span>
+          </button>
+          <div class="text-[10px] text-center text-slate-400 mt-1">Legacy: for Claude or other models (direct URL analysis is now built-in)</div>
+        </div>
+
+        <div class="border-t pt-4 text-xs text-slate-500">
+          <div class="font-semibold mb-1 text-slate-600">Pro tip</div>
+          After the AI responds, copy only the JSON code block (the entire object inside the <span class="font-mono">property-data</span> fence). The rest is human-readable summary.
+        </div>
+
+        <!-- NEW: Direct URL analysis -->
+        <div class="border-t pt-4">
+          <div class="section-header mb-1.5">Or paste a realtor.ca URL (new!)</div>
+          <input type="text" id="listing-url" placeholder="https://www.realtor.ca/real-estate/29727693/14-sunset-place-huron-kinloss"
+                 class="w-full sleek-input text-sm p-3 rounded-2xl border focus:ring-1">
+          <button onclick="analyzeListingUrl()" 
+                  class="mt-2 w-full py-2.5 rounded-2xl bg-teal-700 hover:bg-teal-800 active:bg-teal-900 transition text-white text-sm font-semibold flex items-center justify-center gap-x-2">
+            <i class="fa-solid fa-robot"></i>
+            <span>Analyze with Grok &amp; Add (uses your XAI key)</span>
+          </button>
+          <div id="analyze-status" class="text-xs mt-1 text-slate-500 min-h-[1rem]"></div>
+          <div class="text-[10px] text-slate-400 mt-1">
+            Requires <code>XAI_API_KEY</code> set in Netlify env vars. See SUPABASE_SETUP.md.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Property Detail Modal -->
+  <div id="detail-modal" onclick="if (event.target.id === 'detail-modal') closeDetailModal()" class="hidden fixed inset-0 bg-black/70 z-[110] flex items-end sm:items-center justify-center">
+    <div onclick="event.stopImmediatePropagation()" 
+         class="bg-white w-full sm:max-w-[880px] sm:rounded-3xl sm:m-4 rounded-t-3xl max-h-[94vh] sm:max-h-[88vh] flex flex-col shadow-2xl overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="px-5 sm:px-6 pt-5 pb-3 border-b flex-shrink-0 bg-white sticky top-0 z-10">
+        <div class="flex items-start justify-between gap-4">
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-x-2 flex-wrap">
+              <div id="modal-address" class="font-display text-2xl sm:text-3xl font-semibold tracking-tighter truncate"></div>
+              <div id="modal-price-badge" class="text-lg font-semibold text-emerald-700"></div>
+            </div>
+            <div id="modal-full-address" class="text-slate-500 text-sm mt-px"></div>
+          </div>
+          
+          <div class="flex items-center gap-x-2 flex-shrink-0">
+            <div id="modal-status-pill" class="text-xs font-bold px-3 py-1 rounded-full"></div>
+            <button onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-700 text-3xl leading-none w-8 h-8 flex items-center justify-center">&times;</button>
+          </div>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="flex items-center gap-2 mt-3">
+          <button onclick="toggleFavoriteFromModal()" id="modal-fav-btn"
+                  class="flex items-center gap-x-1.5 px-3 py-1 rounded-2xl border text-xs font-medium hover:bg-slate-50">
+            <i class="fa-regular fa-heart"></i>
+            <span>Favourite</span>
+          </button>
+          
+          <a id="modal-original-link" target="_blank" 
+             class="flex items-center gap-x-1.5 px-3 py-1 rounded-2xl border text-xs font-medium hover:bg-slate-50">
+            <i class="fa-solid fa-external-link-alt text-xs"></i>
+            <span>View on Realtor.ca</span>
+          </a>
+          
+          <div class="flex-1"></div>
+          
+          <select id="modal-status-select" onchange="updatePropertyStatusFromModal()" 
+                  class="text-xs font-semibold border border-slate-200 rounded-2xl px-3 py-1 bg-white outline-none">
+            <option value="new">New — not contacted</option>
+            <option value="researching">Researching</option>
+            <option value="scheduled">Showing scheduled</option>
+            <option value="viewed">Viewed</option>
+            <option value="viewed2">Viewed — second time</option>
+            <option value="offer">Considering offer</option>
+            <option value="passed">Passed</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="px-5 sm:px-6 pt-3 border-b bg-white flex-shrink-0">
+        <div class="flex gap-x-6 text-sm">
+          <button onclick="switchTab(0)" id="tab-0" class="tab-button active">Overview</button>
+          <button onclick="switchTab(1)" id="tab-1" class="tab-button">Showings <span id="showings-count-badge" class="ml-1 text-[10px] font-mono bg-slate-100 px-1.5 rounded"></span></button>
+          <button onclick="switchTab(2)" id="tab-2" class="tab-button">Feedback</button>
+        </div>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="overflow-auto flex-1 p-5 sm:p-6 text-sm" style="max-height: calc(88vh - 170px)">
+        
+        <!-- OVERVIEW TAB -->
+        <div id="tab-content-0">
+          <div class="grid grid-cols-1 lg:grid-cols-5 gap-5">
+            <!-- Left: AI summary + scores -->
+            <div class="lg:col-span-3">
+              <div class="section-header mb-1.5">AI Analysis for you two</div>
+              <div id="modal-ai-summary" class="text-[15px] leading-snug text-slate-700"></div>
+              
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
+                <div class="bg-slate-50 border border-slate-100 rounded-2xl p-3">
+                  <div class="text-xs text-slate-500">Budget fit</div>
+                  <div id="score-budget" class="mt-1 text-emerald-600 font-semibold"></div>
+                </div>
+                <div class="bg-slate-50 border border-slate-100 rounded-2xl p-3">
+                  <div class="text-xs text-slate-500">Location (20 km)</div>
+                  <div id="score-location" class="mt-1 metric-score text-slate-900"></div>
+                </div>
+                <div class="bg-slate-50 border border-slate-100 rounded-2xl p-3">
+                  <div class="text-xs text-slate-500">New build fit</div>
+                  <div id="score-new" class="mt-1 metric-score text-slate-900"></div>
+                </div>
+                <div class="bg-slate-50 border border-slate-100 rounded-2xl p-3">
+                  <div class="text-xs text-slate-500">Lifestyle fit</div>
+                  <div id="score-lifestyle" class="mt-1 metric-score text-slate-900"></div>
+                </div>
+              </div>
+
+              <div class="mt-4">
+                <div class="flex items-baseline justify-between mb-1.5">
+                  <div class="section-header">Overall match</div>
+                  <div id="modal-overall-score" class="font-display text-4xl font-semibold tracking-tighter"></div>
+                </div>
+                <div id="modal-overall-bar" class="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div id="modal-overall-fill" class="h-1.5 bg-gradient-to-r from-teal-500 to-emerald-600 transition-all" style="width: 87%"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Key facts -->
+            <div class="lg:col-span-2 bg-white border border-slate-200 rounded-3xl p-4">
+              <div class="section-header mb-2">Key facts</div>
+              <div class="grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm">
+                <div class="flex justify-between"><span class="text-slate-500">Year built</span> <span id="fact-year" class="data-value font-medium"></span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Lot</span> <span id="fact-lot" class="data-value font-medium"></span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Sq ft</span> <span id="fact-sqft" class="data-value font-medium"></span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Taxes/yr</span> <span id="fact-taxes" class="data-value font-medium"></span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Water</span> <span id="fact-water" class="data-value font-medium"></span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Sewer</span> <span id="fact-sewer" class="data-value font-medium"></span></div>
+                <div class="flex justify-between col-span-2"><span class="text-slate-500">Heating / Cooling</span> <span id="fact-hvac" class="data-value font-medium text-right"></span></div>
+                <div class="flex justify-between col-span-2"><span class="text-slate-500">Parking</span> <span id="fact-parking" class="data-value font-medium text-right"></span></div>
+                <div class="flex justify-between col-span-2"><span class="text-slate-500">Basement</span> <span id="fact-basement" class="data-value font-medium text-right"></span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Features + Location -->
+          <div class="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div>
+              <div class="section-header mb-2">Standout features</div>
+              <div id="modal-features" class="flex flex-wrap gap-1.5"></div>
+            </div>
+            <div>
+              <div class="section-header mb-2">Location &amp; context</div>
+              <div id="modal-location" class="text-sm text-slate-700"></div>
+              <div id="modal-nearby" class="mt-2 flex flex-wrap gap-1"></div>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="mt-5">
+            <div class="section-header mb-1.5">Original description</div>
+            <div id="modal-description" class="text-[13.5px] leading-relaxed text-slate-600 bg-slate-50 border border-slate-100 p-3.5 rounded-2xl"></div>
+          </div>
+
+          <!-- AI Pros / Cons -->
+          <div class="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <div class="flex items-center gap-2 mb-1.5"><span class="section-header">AI pros</span></div>
+              <div id="modal-pros" class="flex flex-wrap gap-1.5"></div>
+            </div>
+            <div>
+              <div class="flex items-center gap-2 mb-1.5"><span class="section-header">AI considerations</span></div>
+              <div id="modal-cons" class="flex flex-wrap gap-1.5"></div>
+            </div>
+          </div>
+
+          <div class="mt-4 text-xs flex items-center gap-x-2 text-slate-500">
+            <i class="fa-solid fa-info-circle"></i>
+            <span>AI analysis generated at time of import. Always double-check numbers on the original listing.</span>
+          </div>
+        </div>
+
+        <!-- SHOWINGS TAB -->
+        <div id="tab-content-1" class="hidden">
+          <div class="flex items-center justify-between mb-3">
+            <div class="font-semibold">Showing history</div>
+            <button onclick="showAddShowingForm()" 
+                    class="text-xs flex items-center gap-x-1.5 px-3 py-1 bg-slate-900 text-white rounded-2xl text-[12px]">
+              <i class="fa-solid fa-plus text-xs"></i>
+              <span>Log new showing</span>
+            </button>
+          </div>
+
+          <div id="showings-list" class="space-y-2 text-sm"></div>
+
+          <!-- Add showing form (toggled) -->
+          <div id="add-showing-form" class="hidden mt-4 border border-slate-200 rounded-2xl p-4 bg-slate-50">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div>
+                <label class="text-xs block mb-0.5 text-slate-500">Date</label>
+                <input type="date" id="showing-date" class="sleek-input w-full border rounded-xl px-3 py-1.5 text-sm">
+              </div>
+              <div>
+                <label class="text-xs block mb-0.5 text-slate-500">Time</label>
+                <input type="time" id="showing-time" value="14:00" class="sleek-input w-full border rounded-xl px-3 py-1.5 text-sm">
+              </div>
+              <div class="col-span-2 sm:col-span-2">
+                <label class="text-xs block mb-0.5 text-slate-500">Who attended</label>
+                <div class="flex gap-4 text-sm pt-1">
+                  <label class="flex items-center gap-1.5"><input type="checkbox" id="attend-d" checked> <span>Dylan</span></label>
+                  <label class="flex items-center gap-1.5"><input type="checkbox" id="attend-b" checked> <span>Bronwynne</span></label>
+                </div>
+              </div>
+            </div>
+            <div class="mt-3">
+              <label class="text-xs block mb-0.5 text-slate-500">Notes (what stood out, questions, red flags, vibes...)</label>
+              <textarea id="showing-notes" rows="2" class="w-full sleek-input border rounded-2xl p-3 text-sm" placeholder="Really loved the covered porch and light in the primary..."></textarea>
+            </div>
+            <div class="flex gap-2 mt-3">
+              <button onclick="saveNewShowing()" class="flex-1 bg-emerald-700 text-white text-sm font-semibold py-2 rounded-2xl">Save showing</button>
+              <button onclick="hideAddShowingForm()" class="flex-1 border text-sm font-semibold py-2 rounded-2xl">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- FEEDBACK TAB -->
+        <div id="tab-content-2" class="hidden">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Dylan -->
+            <div class="border border-slate-200 rounded-3xl p-4">
+              <div class="flex items-center justify-between mb-2">
+                <div class="font-semibold flex items-center gap-x-2"><span class="text-lg">D</span> Dylan</div>
+                <div id="dylan-stars" class="flex gap-x-0.5 text-2xl"></div>
+              </div>
+              
+              <div class="mb-3">
+                <div class="text-xs text-slate-500 mb-1">Pros (tap to remove)</div>
+                <div id="dylan-pros" class="flex flex-wrap gap-1 min-h-[28px]"></div>
+                <div class="mt-1 flex gap-1">
+                  <input id="dylan-pros-input" placeholder="Add a pro..." class="flex-1 text-xs border rounded-full px-3 py-1 outline-none">
+                  <button onclick="addCustomPill('dylan','pros')" class="px-3 text-xs font-medium border rounded-full">+</button>
+                </div>
+              </div>
+
+              <div>
+                <div class="text-xs text-slate-500 mb-1">Cons</div>
+                <div id="dylan-cons" class="flex flex-wrap gap-1 min-h-[28px]"></div>
+                <div class="mt-1 flex gap-1">
+                  <input id="dylan-cons-input" placeholder="Add a con..." class="flex-1 text-xs border rounded-full px-3 py-1 outline-none">
+                  <button onclick="addCustomPill('dylan','cons')" class="px-3 text-xs font-medium border rounded-full">+</button>
+                </div>
+              </div>
+
+              <div class="mt-3">
+                <div class="text-xs text-slate-500 mb-1">Private notes</div>
+                <textarea id="dylan-notes" onblur="saveFeedbackNotes()" class="w-full border rounded-2xl p-2.5 text-xs h-20" placeholder="My thoughts..."></textarea>
+              </div>
+            </div>
+
+            <!-- Bronwynne -->
+            <div class="border border-slate-200 rounded-3xl p-4">
+              <div class="flex items-center justify-between mb-2">
+                <div class="font-semibold flex items-center gap-x-2"><span class="text-lg">B</span> Bronwynne</div>
+                <div id="bronwynne-stars" class="flex gap-x-0.5 text-2xl"></div>
+              </div>
+              
+              <div class="mb-3">
+                <div class="text-xs text-slate-500 mb-1">Pros (tap to remove)</div>
+                <div id="bronwynne-pros" class="flex flex-wrap gap-1 min-h-[28px]"></div>
+                <div class="mt-1 flex gap-1">
+                  <input id="bronwynne-pros-input" placeholder="Add a pro..." class="flex-1 text-xs border rounded-full px-3 py-1 outline-none">
+                  <button onclick="addCustomPill('bronwynne','pros')" class="px-3 text-xs font-medium border rounded-full">+</button>
+                </div>
+              </div>
+
+              <div>
+                <div class="text-xs text-slate-500 mb-1">Cons</div>
+                <div id="bronwynne-cons" class="flex flex-wrap gap-1 min-h-[28px]"></div>
+                <div class="mt-1 flex gap-1">
+                  <input id="bronwynne-cons-input" placeholder="Add a con..." class="flex-1 text-xs border rounded-full px-3 py-1 outline-none">
+                  <button onclick="addCustomPill('bronwynne','cons')" class="px-3 text-xs font-medium border rounded-full">+</button>
+                </div>
+              </div>
+
+              <div class="mt-3">
+                <div class="text-xs text-slate-500 mb-1">Private notes</div>
+                <textarea id="bronwynne-notes" onblur="saveFeedbackNotes()" class="w-full border rounded-2xl p-2.5 text-xs h-20" placeholder="My thoughts..."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Couple shared -->
+          <div class="mt-4 border border-slate-200 bg-slate-50 rounded-3xl p-4">
+            <div class="font-semibold mb-1 flex items-center gap-2 text-sm">
+              <span>Shared couple notes</span> 
+              <span class="text-xs font-normal text-slate-400">(visible to both)</span>
+            </div>
+            <textarea id="couple-notes" onblur="saveFeedbackNotes()" rows="2"
+                      class="w-full bg-white border rounded-2xl p-3 text-sm" placeholder="Joint thoughts, questions for realtor, negotiation angles..."></textarea>
+            
+            <div class="mt-3 flex items-center gap-3 text-xs">
+              <div class="font-semibold">Couple average</div>
+              <div id="couple-avg-stars" class="flex text-xl"></div>
+              <div id="couple-avg-text" class="font-semibold text-base text-slate-700"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-5 sm:px-6 py-3 border-t bg-white flex-shrink-0 flex items-center gap-2 text-xs">
+        <button onclick="promoteAiPillsToPersonal()" 
+                class="px-3 py-1.5 rounded-2xl border text-slate-600 hover:bg-slate-50 font-medium">Promote AI pros/cons to our feedback (syncs live)</button>
+        <div class="flex-1"></div>
+        <button onclick="closeDetailModal()" class="px-4 py-1.5 font-semibold">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="app-container px-4 sm:px-6 py-6 text-[10px] text-slate-400 flex flex-wrap items-center gap-x-4 border-t mt-4">
+    <div>Realtime collaborative version. See SUPABASE_SETUP.md to enable live sync.</div>
+    <button onclick="showPromptInApp()" class="underline hover:text-slate-500">Master prompt</button>
+    <a href="SUPABASE_SETUP.md" target="_blank" class="underline hover:text-teal-600 font-medium">Supabase setup</a>
+    <button onclick="clearAllData()" class="underline hover:text-red-600">Reset all data</button>
+  </footer>
+
+  <script>
+    // Tailwind script config
+    function initTailwind() {
+      document.documentElement.style.setProperty('--accent', '#0F172A');
+    }
+
+    // ============== DATA MODEL ==============
+    let properties = [];
+    let currentPropertyId = null;
+    let currentTab = 0;
+
+    const STORAGE_KEY = 'bd-home-hunt-properties-v1';
+
+    // =============================================
+    // SUPABASE REALTIME CONFIG — EDIT THESE
+    // =============================================
+    const SUPABASE_URL = 'https://iagfqqrtmtodbjikuvhd.supabase.co';   // e.g. https://abcdefghijklmnop.supabase.co
+    const SUPABASE_ANON_KEY = 'sb_publishable_WY8NxScOZVxvNJrWLD0ZJg_YUSvTUXO'; // paste the anon public key from Supabase dashboard
+    const HUNT_ID = 'bd-kincardine-2026';   // CHANGE THIS to a unique secret phrase only you + Bronwynne know
+
+    let supabaseClient = null;
+    let isSupabaseEnabled = false;
+    let realtimeChannel = null;
+
+    function initSupabase() {
+      if (!SUPABASE_URL || SUPABASE_URL.includes('YOUR-PROJECT') || !SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.length < 20) {
+        console.warn('%c[Supabase] Not configured — running in local-only mode. Edit SUPABASE_URL / ANON_KEY / HUNT_ID in the script to enable realtime.', 'color:#f59e0b');
+        isSupabaseEnabled = false;
+        return;
+      }
+      try {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        isSupabaseEnabled = true;
+        console.log('%c[Supabase] Client initialized for hunt: ' + HUNT_ID, 'color:#14b8a6');
+      } catch (e) {
+        console.error('[Supabase] Failed to initialize client', e);
+        isSupabaseEnabled = false;
+      }
+    }
+
+    async function setupRealtime() {
+      if (!isSupabaseEnabled || !supabaseClient) return;
+
+      // Unsubscribe previous if any
+      if (realtimeChannel) {
+        try { await realtimeChannel.unsubscribe(); } catch (e) {}
+      }
+
+      // Subscribe to all changes on this hunt
+      realtimeChannel = supabaseClient
+        .channel('hunt-properties-' + HUNT_ID)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'hunt_properties',
+            filter: `hunt_id=eq.${HUNT_ID}`
+          },
+          (payload) => {
+            console.log('[Supabase Realtime] Change received:', payload.eventType, payload.new?.id);
+            handleRealtimeUpdate(payload);
+          }
+        )
+        .subscribe((status, err) => {
+          console.log('[Supabase Realtime] Status:', status, err || '');
+          updateRealtimeStatus(status);
+          if (status === 'CHANNEL_ERROR' || status === 'CLOSED') {
+            // Auto-retry after a short delay
+            setTimeout(() => {
+              if (isSupabaseEnabled) setupRealtime();
+            }, 3000);
+          }
+        });
+    }
+
+    function updateRealtimeStatus(status) {
+      const dot = document.getElementById('supabase-dot');
+      const text = document.getElementById('supabase-text');
+      const statusEl = document.getElementById('supabase-status');
+      if (!dot || !text || !statusEl) return;
+
+      if (status === 'SUBSCRIBED') {
+        dot.className = 'inline-block w-2 h-2 rounded-full bg-emerald-500';
+        text.textContent = 'Live';
+        text.className = 'text-emerald-600 font-semibold';
+        statusEl.title = 'Realtime connected • Click to force resync';
+      } else if (status === 'CHANNEL_ERROR' || status === 'CLOSED') {
+        dot.className = 'inline-block w-2 h-2 rounded-full bg-amber-500 animate-pulse';
+        text.textContent = 'Reconnecting...';
+        text.className = 'text-amber-600';
+        statusEl.title = 'Realtime temporarily disconnected — will auto-retry';
+      } else {
+        dot.className = 'inline-block w-2 h-2 rounded-full bg-gray-400';
+        text.textContent = 'Live';
+        text.className = 'text-slate-500';
+      }
+    }
+
+    function handleRealtimeUpdate(payload) {
+      const newRow = payload.new;
+      if (!newRow || newRow.hunt_id !== HUNT_ID) return;
+
+      const incoming = newRow.data;
+      if (!incoming || !incoming.id) return;
+
+      // Merge into local properties array
+      const existingIndex = properties.findIndex(p => p.id === incoming.id);
+      if (existingIndex >= 0) {
+        // Update in place, preserving any local optimistic changes if needed
+        properties[existingIndex] = { ...properties[existingIndex], ...incoming };
+      } else {
+        properties.unshift(incoming);
+      }
+
+      // Refresh UI
+      updateHeaderStats();
+      filterProperties();   // re-render grid with current filters
+    }
+
+    async function syncPropertyToSupabase(prop) {
+      if (!isSupabaseEnabled || !supabaseClient) {
+        // fallback to local
+        savePropertiesLocal();
+        return;
+      }
+      try {
+        const { error } = await supabaseClient
+          .from('hunt_properties')
+          .upsert({
+            id: prop.id,
+            hunt_id: HUNT_ID,
+            data: prop
+          }, { onConflict: 'id' });
+
+        if (error) throw error;
+      } catch (e) {
+        console.error('[Supabase] Failed to sync property', e);
+        showToast('Failed to sync to cloud — changes saved locally only.');
+      }
+    }
+
+    // Seed data for the provided URL (14 Sunset Place)
+    const SEED_PROPERTY = {
+      "id": "p-29727693",
+      "sourceUrl": "https://www.realtor.ca/real-estate/29727693/14-sunset-place-huron-kinloss",
+      "mlsNumber": "X13106842",
+      "address": "14 Sunset Place",
+      "fullAddress": "14 SUNSET PLACE, Huron-Kinloss, Ontario N2Z2X3",
+      "price": 895000,
+      "priceDisplay": "$895,000",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "sqftRange": "1500 - 2000",
+      "lotSize": "102 x 206 FT",
+      "yearBuilt": 2020,
+      "propertyType": "Single Family",
+      "style": "Raised Bungalow",
+      "ownership": "Freehold",
+      "annualTaxes": 6412,
+      "water": "Municipal",
+      "sewer": "Septic System",
+      "heating": "Forced air (Natural gas)",
+      "cooling": "Central air conditioning",
+      "parking": "Attached Garage, 8 spaces total",
+      "basement": "Partially finished with bathroom rough-in and large windows",
+      "features": [
+        "Cul-de-sac",
+        "Level lot",
+        "Built 2020",
+        "Backup gas generator",
+        "Tankless water heater",
+        "Covered back porch (24' x 10')",
+        "Open concept main floor",
+        "Double oven + quality appliances",
+        "Fireplace",
+        "Sump pump"
+      ],
+      "description": "Welcome to 14 Sunset Place. Built in 2020, this modern raised bungalow offers a bright, open-concept main living area featuring stylish lighting, contemporary fixtures, quality appliances, sleek cabinetry and a double oven. Thoughtfully designed for privacy, the spacious primary bedroom is located on the north side of the home, while two generously sized bedrooms are positioned on the south end. Set on just under a half-acre lot in a prestigious cul-de-sac, surrounded by mature trees and natural beauty, this property is just a short stroll to the beach, a perfect location for year-round living or as a luxurious cottage retreat. Enjoy added peace of mind with a built-in backup gas generator, ensuring comfort in every season. Step outside to the expansive 24' x 10' covered back porch, an ideal space to relax and take in the breathtaking sunsets, where the sky transforms into the signature pink hues of Lake Huron. The lower level offers incredible potential, with a bathroom rough-in and large windows. It's a blank canvas ready for your vision. Located in the sought-after community of Point Clark, this home appeals to families and retirees alike. Enjoy convenient access to local shops, dining, the beach, and the iconic lighthouse.",
+      "locationNotes": "Point Clark, Huron-Kinloss. Cross Streets: Huron Rd & Sunset Place. ~15 km south of Kincardine (≈12-15 min drive). Short stroll to Lake Huron beach and lighthouse. Prestigious quiet cul-de-sac surrounded by mature trees.",
+      "nearbyAmenities": ["Beach", "Point Clark Lighthouse", "Golf Nearby", "Park", "Community Centre"],
+      "daysOnMarket": 23,
+      "agent": {
+        "name": "Jeff Zettle",
+        "brokerage": "Royal LePage Exchange Realty Co.",
+        "phone": "519-386-4800"
+      },
+      "photoUrls": [
+        "https://cdn.realtor.ca/listings/TS639139195214730000/reb47/highres/2/x13106842_1.jpg",
+        "https://cdn.realtor.ca/listings/TS639139195214730000/reb47/highres/2/x13106842_2.jpg",
+        "https://cdn.realtor.ca/listings/TS639139195214730000/reb47/highres/2/x13106842_3.jpg",
+        "https://cdn.realtor.ca/listings/TS639139195214730000/reb47/highres/2/x13106842_20.jpg",
+        "https://cdn.realtor.ca/listings/TS639139195214730000/reb47/highres/2/x13106842_22.jpg"
+      ],
+      "virtualTourUrl": "https://show.tours/14sunsetplace?b=0",
+      "aiAnalysis": {
+        "budgetFit": "Excellent — $55k under the $950k pre-approval. Leaves comfortable room for closing costs, first-time buyer land transfer tax (with available rebates in Ontario), and any immediate updates.",
+        "locationScore": 9,
+        "newBuildScore": 10,
+        "lifestyleScore": 9,
+        "overallMatchScore": 9.0,
+        "summary": "Outstanding alignment with your criteria. 2020 raised bungalow on a private half-acre cul-de-sac in Point Clark — 15 km south of Kincardine and a short walk to Lake Huron beach. Modern finishes, generator, covered sunset porch, and lower-level potential check nearly every box for a first home with room to grow.",
+        "pros": [
+          "True 2020 construction (rare quality in the area)",
+          "Private 0.48 acre lot in quiet cul-de-sac",
+          "Walk to beach + iconic Point Clark sunsets",
+          "Modern open-concept with quality finishes & appliances",
+          "Backup generator included (huge peace of mind)",
+          "Large covered porch for 3-season living",
+          "Lower level roughed for future expansion",
+          "Under budget with buffer"
+        ],
+        "cons": [
+          "Septic system — budget for regular pumping & eventual replacement (typical for rural properties)",
+          "Lower level is currently unfinished (potential, not living space today)",
+          "23 days on market — ask about motivation and any price flexibility",
+          "Rural location: confirm high-speed internet options and winter road maintenance"
+        ],
+        "recommendedAction": "Schedule a private showing this week. Strongest new-build + lakeside candidate seen so far. Prioritize asking about septic history, utility costs, and any flexibility on price."
+      },
+      "userData": {
+        "status": "new",
+        "showings": [],
+        "dylan": { "stars": null, "pros": [], "cons": [], "notes": "" },
+        "bronwynne": { "stars": null, "pros": [], "cons": [], "notes": "" },
+        "coupleNotes": "",
+        "favorite": false,
+        "visited": false
+      },
+      "addedAt": "2026-06-02T10:00:00.000Z"
+    };
+
+    async function loadProperties() {
+      initSupabase();
+
+      if (isSupabaseEnabled && supabaseClient) {
+        try {
+          const { data, error } = await supabaseClient
+            .from('hunt_properties')
+            .select('data')
+            .eq('hunt_id', HUNT_ID)
+            .order('updated_at', { ascending: false });
+
+          if (error) throw error;
+
+          if (data && data.length > 0) {
+            properties = data.map(row => row.data);
+            console.log(`%c[Supabase] Loaded ${properties.length} properties from database`, 'color:#14b8a6');
+          } else {
+            // First time for this hunt — seed from local data.json if available, or the JS seed
+            await seedInitialData();
+          }
+
+          // Setup realtime after initial load
+          await setupRealtime();
+        } catch (e) {
+          console.error('[Supabase] Load failed, falling back to local', e);
+          isSupabaseEnabled = false;
+          await loadPropertiesLocalFallback();
+        }
+      } else {
+        await loadPropertiesLocalFallback();
+      }
+
+      // Always ensure we have at least the seed example
+      if (!properties.find(p => p.id === SEED_PROPERTY.id)) {
+        const seedCopy = JSON.parse(JSON.stringify(SEED_PROPERTY));
+        properties.unshift(seedCopy);
+        await syncPropertyToSupabase(seedCopy);
+      }
+    }
+
+    async function loadPropertiesLocalFallback() {
+      // Original local + data.json behavior as fallback
+      let loadedFromShared = false;
+      try {
+        const res = await fetch('./data.json', { cache: 'no-store' });
+        if (res.ok) {
+          const shared = await res.json();
+          if (Array.isArray(shared) && shared.length > 0) {
+            properties = shared;
+            loadedFromShared = true;
+          }
+        }
+      } catch (_) {}
+
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved && !loadedFromShared) {
+        try { properties = JSON.parse(saved); } catch (_) { properties = []; }
+      }
+      if (!properties || properties.length === 0) {
+        properties = [JSON.parse(JSON.stringify(SEED_PROPERTY))];
+      }
+      if (loadedFromShared && saved) {
+        try {
+          const localProps = JSON.parse(saved);
+          properties.forEach(prop => {
+            const localMatch = localProps.find(lp => lp.id === prop.id);
+            if (localMatch?.userData) prop.userData = { ...prop.userData, ...localMatch.userData };
+          });
+        } catch (_) {}
+      }
+    }
+
+    async function seedInitialData() {
+      // Try to seed from the bundled data.json on first run for this hunt
+      try {
+        const res = await fetch('./data.json', { cache: 'no-store' });
+        if (res.ok) {
+          const shared = await res.json();
+          if (Array.isArray(shared)) {
+            for (const prop of shared) {
+              await supabaseClient.from('hunt_properties').upsert({
+                id: prop.id,
+                hunt_id: HUNT_ID,
+                data: prop
+              });
+            }
+            properties = shared;
+            console.log('%c[Supabase] Seeded initial data from data.json', 'color:#14b8a6');
+          }
+        }
+      } catch (_) {
+        // fall back to JS seed
+        const seedCopy = JSON.parse(JSON.stringify(SEED_PROPERTY));
+        await supabaseClient.from('hunt_properties').upsert({
+          id: seedCopy.id,
+          hunt_id: HUNT_ID,
+          data: seedCopy
+        });
+        properties = [seedCopy];
+      }
+    }
+
+    function saveProperties() {
+      // For Supabase version: we sync individual properties on change.
+      // This is a safety net for localStorage backup.
+      savePropertiesLocal();
+    }
+
+    function savePropertiesLocal() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(properties));
+      updateHeaderStats();
+    }
+
+    function updateHeaderStats() {
+      const active = properties.length;
+      const viewed = properties.filter(p => p.userData.visited || (p.userData.showings && p.userData.showings.length > 0)).length;
+      
+      let totalAvg = 0;
+      let countWithRank = 0;
+      properties.forEach(p => {
+        const d = p.userData.dylan?.stars || 0;
+        const b = p.userData.bronwynne?.stars || 0;
+        if (d || b) {
+          totalAvg += (d + b) / 2;
+          countWithRank++;
+        }
+      });
+      const avg = countWithRank ? (totalAvg / countWithRank).toFixed(1) : '—';
+
+      document.getElementById('stat-active').textContent = active;
+      document.getElementById('stat-viewed').textContent = viewed;
+      document.getElementById('stat-avg').textContent = avg;
+    }
+
+    function updateSupabaseStatusUI(connected = null) {
+      const dot = document.getElementById('supabase-dot');
+      const text = document.getElementById('supabase-text');
+      const statusEl = document.getElementById('supabase-status');
+      if (!dot || !text || !statusEl) return;
+
+      const isConnected = connected !== null ? connected : isSupabaseEnabled;
+
+      if (isConnected) {
+        dot.className = 'inline-block w-2 h-2 rounded-full bg-emerald-500';
+        text.textContent = 'Live';
+        text.className = 'text-emerald-600 font-semibold';
+        statusEl.title = 'Connected to Supabase • Click to force resync';
+      } else {
+        dot.className = 'inline-block w-2 h-2 rounded-full bg-amber-500';
+        text.textContent = 'Local only';
+        text.className = 'text-amber-600';
+        statusEl.title = 'Supabase not connected — using local data only. Click to retry.';
+      }
+    }
+
+    // ============== RENDERING ==============
+    function renderGrid(filteredProps = null) {
+      const grid = document.getElementById('property-grid');
+      const empty = document.getElementById('empty-state');
+      grid.innerHTML = '';
+
+      const toRender = filteredProps || properties;
+
+      if (toRender.length === 0) {
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+
+      toRender.forEach(prop => {
+        const card = createPropertyCard(prop);
+        grid.appendChild(card);
+      });
+    }
+
+    function createPropertyCard(prop) {
+      const div = document.createElement('div');
+      div.className = `property-card bg-white border border-slate-200 rounded-3xl overflow-hidden cursor-pointer premium-shadow`;
+      
+      const ud = prop.userData || {};
+      const ai = prop.aiAnalysis || {};
+      const score = ai.overallMatchScore || 7;
+      const scoreColor = score >= 8.5 ? 'bg-emerald-600' : score >= 7.5 ? 'bg-teal-600' : 'bg-amber-600';
+
+      const photo = (prop.photoUrls && prop.photoUrls[0]) ? 
+        `background-image: url('${prop.photoUrls[0]}')` : 
+        `background: linear-gradient(135deg, #0F172A 0%, #334155 100%)`;
+
+      const isNewBuild = prop.yearBuilt && prop.yearBuilt >= 2018;
+      const statusLabel = getStatusLabel(ud.status);
+      const statusColor = getStatusColor(ud.status);
+
+      const dStars = ud.dylan?.stars || 0;
+      const bStars = ud.bronwynne?.stars || 0;
+      const avgStars = (dStars || bStars) ? ((dStars + bStars) / 2).toFixed(1) : null;
+
+      const budgetUnder = prop.price < 920000 ? 
+        `<span class="text-emerald-600 font-semibold">Under by $${Math.round((950000 - prop.price)/1000)}k</span>` : 
+        `<span class="text-amber-600 font-semibold">Near budget cap</span>`;
+
+      div.innerHTML = `
+        <div class="relative h-44" style="${photo}">
+          <div class="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 to-transparent"></div>
+          
+          <div class="absolute top-3 right-3 flex flex-col items-end gap-1">
+            <div class="px-3 py-0.5 rounded-full text-xs font-bold text-white shadow ${scoreColor}">
+              ${score}/10 match
+            </div>
+            ${isNewBuild ? `<div class="px-2.5 py-px bg-white/90 text-emerald-700 text-[10px] font-bold rounded-full">2020 NEWER</div>` : ''}
+          </div>
+          
+          <div class="absolute bottom-3 left-3 right-3 flex items-end justify-between text-white">
+            <div>
+              <div class="text-2xl font-semibold tracking-tighter">${prop.priceDisplay}</div>
+              <div class="text-xs opacity-90">${prop.address}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-3.5">
+          <div class="flex items-center justify-between text-xs mb-2">
+            <div class="font-medium text-slate-600">${prop.style} • ${prop.bedrooms}bd / ${prop.bathrooms}ba</div>
+            <div class="px-2 py-px rounded ${statusColor} text-[10px] font-bold">${statusLabel}</div>
+          </div>
+
+          <div class="flex flex-wrap gap-1 text-[10px]">
+            <div class="stat-pill px-2 py-px rounded">${prop.sqftRange} sqft</div>
+            <div class="stat-pill px-2 py-px rounded">${prop.lotSize}</div>
+            ${prop.yearBuilt ? `<div class="stat-pill px-2 py-px rounded">${prop.yearBuilt}</div>` : ''}
+          </div>
+
+          <div class="mt-2.5 text-xs text-slate-600 line-clamp-2">
+            ${ai.summary ? ai.summary.substring(0, 135) + (ai.summary.length > 135 ? '…' : '') : 'Solid candidate in target area.'}
+          </div>
+
+          <div class="mt-3 flex items-center justify-between text-xs">
+            <div class="flex items-center gap-1">
+              ${avgStars ? `
+                <span class="font-semibold text-emerald-700">${avgStars}</span>
+                <span class="text-amber-400">★</span>
+                <span class="text-slate-400">couple</span>
+              ` : `<span class="text-slate-400 italic">No ranks yet</span>`}
+            </div>
+            <div class="text-emerald-700 font-medium text-xs">${budgetUnder}</div>
+          </div>
+        </div>
+      `;
+
+      div.onclick = () => openDetailModal(prop.id);
+      return div;
+    }
+
+    function getStatusLabel(status) {
+      const map = {
+        'new': 'New',
+        'researching': 'Researching',
+        'scheduled': 'Scheduled',
+        'viewed': 'Viewed',
+        'viewed2': '2nd Showing',
+        'offer': 'Offer zone',
+        'passed': 'Passed'
+      };
+      return map[status] || 'New';
+    }
+
+    function getStatusColor(status) {
+      if (['viewed', 'viewed2'].includes(status)) return 'bg-emerald-100 text-emerald-700';
+      if (status === 'passed') return 'bg-slate-200 text-slate-500';
+      if (status === 'offer') return 'bg-amber-100 text-amber-700';
+      if (status === 'scheduled') return 'bg-sky-100 text-sky-700';
+      return 'bg-slate-100 text-slate-600';
+    }
+
+    // ============== FILTER + SORT ==============
+    let currentFilter = 'all';
+
+    function setQuickFilter(type) {
+      currentFilter = type;
+      
+      // Update button styles
+      document.querySelectorAll('[id^="filter-"]').forEach(btn => btn.classList.remove('bg-slate-900', 'text-white'));
+      document.querySelectorAll('[id^="filter-"]').forEach(btn => btn.classList.add('border', 'border-slate-200'));
+      
+      const activeBtn = document.getElementById('filter-' + (type === 'all' ? 'all' : type));
+      if (activeBtn) {
+        activeBtn.classList.add('bg-slate-900', 'text-white');
+        activeBtn.classList.remove('border', 'border-slate-200');
+      }
+      
+      filterProperties();
+    }
+
+    function filterProperties() {
+      const search = (document.getElementById('search-input').value || '').toLowerCase().trim();
+      const sortMode = document.getElementById('sort-select').value;
+
+      let filtered = [...properties];
+
+      // Apply quick filter
+      if (currentFilter === 'new') {
+        filtered = filtered.filter(p => p.yearBuilt && p.yearBuilt >= 2018);
+      } else if (currentFilter === 'outoftown') {
+        filtered = filtered.filter(p => 
+          (p.locationNotes && (p.locationNotes.toLowerCase().includes('point clark') || p.locationNotes.toLowerCase().includes('out') || p.locationNotes.toLowerCase().includes('rural'))) ||
+          (p.aiAnalysis && p.aiAnalysis.locationScore >= 8)
+        );
+      } else if (currentFilter === 'unviewed') {
+        filtered = filtered.filter(p => !p.userData.visited && (!p.userData.showings || p.userData.showings.length === 0));
+      }
+
+      // Search
+      if (search) {
+        filtered = filtered.filter(p =>
+          (p.address && p.address.toLowerCase().includes(search)) ||
+          (p.fullAddress && p.fullAddress.toLowerCase().includes(search)) ||
+          (p.mlsNumber && p.mlsNumber.toLowerCase().includes(search)) ||
+          (p.aiAnalysis && p.aiAnalysis.summary && p.aiAnalysis.summary.toLowerCase().includes(search))
+        );
+      }
+
+      // Sort
+      if (sortMode === 'price-low') {
+        filtered.sort((a, b) => a.price - b.price);
+      } else if (sortMode === 'price-high') {
+        filtered.sort((a, b) => b.price - a.price);
+      } else if (sortMode === 'newest') {
+        filtered.sort((a, b) => (b.yearBuilt || 0) - (a.yearBuilt || 0));
+      } else if (sortMode === 'recent') {
+        filtered.sort((a, b) => new Date(b.addedAt || 0) - new Date(a.addedAt || 0));
+      } else {
+        // Best AI match
+        filtered.sort((a, b) => (b.aiAnalysis?.overallMatchScore || 0) - (a.aiAnalysis?.overallMatchScore || 0));
+      }
+
+      renderGrid(filtered);
+    }
+
+    function resetFilters() {
+      currentFilter = 'all';
+      document.getElementById('search-input').value = '';
+      document.getElementById('sort-select').value = 'match';
+      
+      document.querySelectorAll('[id^="filter-"]').forEach(btn => {
+        btn.classList.remove('bg-slate-900', 'text-white');
+        btn.classList.add('border', 'border-slate-200');
+      });
+      const allBtn = document.getElementById('filter-all');
+      if (allBtn) allBtn.classList.add('bg-slate-900', 'text-white');
+      
+      renderGrid(properties);
+    }
+
+    // ============== DETAIL MODAL ==============
+    function openDetailModal(id) {
+      currentPropertyId = id;
+      const prop = properties.find(p => p.id === id);
+      if (!prop) return;
+
+      // Header
+      document.getElementById('modal-address').textContent = prop.address;
+      document.getElementById('modal-full-address').textContent = prop.fullAddress;
+      document.getElementById('modal-price-badge').innerHTML = `<span class="font-semibold">${prop.priceDisplay}</span>`;
+      
+      const statusPill = document.getElementById('modal-status-pill');
+      statusPill.textContent = getStatusLabel(prop.userData.status);
+      statusPill.className = `text-xs font-bold px-3 py-1 rounded-full ${getStatusColor(prop.userData.status)}`;
+
+      document.getElementById('modal-original-link').href = prop.sourceUrl;
+
+      // Update fav heart
+      updateFavButton(prop);
+
+      // Status select
+      document.getElementById('modal-status-select').value = prop.userData.status || 'new';
+
+      // AI Summary
+      const ai = prop.aiAnalysis || {};
+      document.getElementById('modal-ai-summary').textContent = ai.summary || 'Good candidate based on available data.';
+
+      // Scores
+      document.getElementById('score-budget').innerHTML = ai.budgetFit || 'Solid value relative to pre-approval.';
+      document.getElementById('score-location').innerHTML = ai.locationScore ? `${ai.locationScore}<span class="text-xs align-super">/10</span>` : '—';
+      document.getElementById('score-new').innerHTML = ai.newBuildScore ? `${ai.newBuildScore}<span class="text-xs align-super">/10</span>` : '—';
+      document.getElementById('score-lifestyle').innerHTML = ai.lifestyleScore ? `${ai.lifestyleScore}<span class="text-xs align-super">/10</span>` : '—';
+
+      const overall = ai.overallMatchScore || 7;
+      document.getElementById('modal-overall-score').textContent = overall;
+      document.getElementById('modal-overall-fill').style.width = `${Math.round(overall * 10)}%`;
+
+      // Facts
+      document.getElementById('fact-year').textContent = prop.yearBuilt || 'Not listed';
+      document.getElementById('fact-lot').textContent = prop.lotSize || '—';
+      document.getElementById('fact-sqft').textContent = prop.sqftRange || '—';
+      document.getElementById('fact-taxes').textContent = prop.annualTaxes ? '$' + prop.annualTaxes.toLocaleString() : '—';
+      document.getElementById('fact-water').textContent = prop.water || '—';
+      document.getElementById('fact-sewer').textContent = prop.sewer || '—';
+      document.getElementById('fact-hvac').textContent = `${prop.heating || ''} / ${prop.cooling || ''}`.replace(' / —', '');
+      document.getElementById('fact-parking').textContent = prop.parking || '—';
+      document.getElementById('fact-basement').textContent = prop.basement || '—';
+
+      // Location
+      document.getElementById('modal-location').innerHTML = prop.locationNotes || 'Location details from listing.';
+      
+      const nearbyEl = document.getElementById('modal-nearby');
+      nearbyEl.innerHTML = '';
+      (prop.nearbyAmenities || []).forEach(a => {
+        const span = document.createElement('span');
+        span.className = 'text-xs px-2.5 py-px bg-teal-100 text-teal-700 rounded-full';
+        span.textContent = a;
+        nearbyEl.appendChild(span);
+      });
+
+      // Features
+      const featEl = document.getElementById('modal-features');
+      featEl.innerHTML = '';
+      (prop.features || []).slice(0, 8).forEach(f => {
+        const span = document.createElement('span');
+        span.className = 'text-xs px-2.5 py-0.5 bg-slate-100 text-slate-700 rounded-2xl';
+        span.textContent = f;
+        featEl.appendChild(span);
+      });
+
+      // Description
+      document.getElementById('modal-description').textContent = prop.description || 'No description provided.';
+
+      // AI pros / cons
+      renderAiPills('modal-pros', ai.pros || [], 'pros');
+      renderAiPills('modal-cons', ai.cons || [], 'cons');
+
+      // Show first tab
+      switchTab(0, true);
+
+      // Show modal
+      document.getElementById('detail-modal').classList.remove('hidden');
+      document.getElementById('detail-modal').classList.add('flex');
+    }
+
+    function updateFavButton(prop) {
+      const btn = document.getElementById('modal-fav-btn');
+      if (prop.userData.favorite) {
+        btn.innerHTML = `<i class="fa-solid fa-heart text-red-500"></i><span>Favourited</span>`;
+        btn.classList.add('!border-red-200');
+      } else {
+        btn.innerHTML = `<i class="fa-regular fa-heart"></i><span>Favourite</span>`;
+        btn.classList.remove('!border-red-200');
+      }
+    }
+
+    async function toggleFavoriteFromModal() {
+      const prop = properties.find(p => p.id === currentPropertyId);
+      if (!prop) return;
+      prop.userData.favorite = !prop.userData.favorite;
+      savePropertiesLocal();
+      await syncPropertyToSupabase(prop);
+      updateFavButton(prop);
+      renderGrid();
+    }
+
+    async function updatePropertyStatusFromModal() {
+      const prop = properties.find(p => p.id === currentPropertyId);
+      if (!prop) return;
+      const newStatus = document.getElementById('modal-status-select').value;
+      prop.userData.status = newStatus;
+      if (['viewed', 'viewed2'].includes(newStatus)) prop.userData.visited = true;
+      savePropertiesLocal();
+      await syncPropertyToSupabase(prop);
+      
+      // refresh pill
+      const statusPill = document.getElementById('modal-status-pill');
+      statusPill.textContent = getStatusLabel(newStatus);
+      statusPill.className = `text-xs font-bold px-3 py-1 rounded-full ${getStatusColor(newStatus)}`;
+      
+      renderGrid();
+    }
+
+    function switchTab(tabIndex, skipRender = false) {
+      currentTab = tabIndex;
+      
+      // Update tab buttons
+      for (let i = 0; i < 3; i++) {
+        const btn = document.getElementById(`tab-${i}`);
+        const content = document.getElementById(`tab-content-${i}`);
+        if (btn) btn.classList.toggle('active', i === tabIndex);
+        if (content) content.classList.toggle('hidden', i !== tabIndex);
+      }
+
+      if (skipRender) return;
+
+      const prop = properties.find(p => p.id === currentPropertyId);
+      if (!prop) return;
+
+      if (tabIndex === 1) {
+        renderShowings(prop);
+      } else if (tabIndex === 2) {
+        renderFeedback(prop);
+      }
+    }
+
+    function closeDetailModal() {
+      const modal = document.getElementById('detail-modal');
+      modal.classList.remove('flex');
+      modal.classList.add('hidden');
+      currentPropertyId = null;
+      // Refresh grid in case status / ranks changed
+      filterProperties();
+    }
+
+    // ============== SHOWINGS ==============
+    function renderShowings(prop) {
+      const container = document.getElementById('showings-list');
+      container.innerHTML = '';
+      const showings = prop.userData.showings || [];
+
+      document.getElementById('showings-count-badge').textContent = showings.length || '';
+
+      if (showings.length === 0) {
+        container.innerHTML = `<div class="text-sm text-slate-500 py-6 text-center border border-dashed rounded-2xl">No showings logged yet. Add the first one above.</div>`;
+        return;
+      }
+
+      showings.slice().reverse().forEach((s, idx) => {
+        const realIdx = showings.length - 1 - idx;
+        const div = document.createElement('div');
+        div.className = `border border-slate-200 rounded-2xl px-4 py-3 text-sm flex flex-col sm:flex-row gap-2 sm:items-center`;
+        div.innerHTML = `
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold">${s.date} ${s.time ? '• ' + s.time : ''}</div>
+            <div class="text-xs text-slate-500">${(s.attended || []).join(' + ') || 'No one marked'}</div>
+            ${s.notes ? `<div class="mt-1 text-xs text-slate-600">${s.notes}</div>` : ''}
+          </div>
+          <button onclick="deleteShowing(${realIdx})" class="text-red-400 hover:text-red-600 text-xs self-start sm:self-center">Delete</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function showAddShowingForm() {
+      document.getElementById('add-showing-form').classList.remove('hidden');
+      // default today
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('showing-date').value = today;
+    }
+
+    function hideAddShowingForm() {
+      document.getElementById('add-showing-form').classList.add('hidden');
+    }
+
+    async function saveNewShowing() {
+      const prop = properties.find(p => p.id === currentPropertyId);
+      if (!prop) return;
+
+      const date = document.getElementById('showing-date').value;
+      const time = document.getElementById('showing-time').value;
+      const notes = document.getElementById('showing-notes').value.trim();
+      const attended = [];
+      if (document.getElementById('attend-d').checked) attended.push('Dylan');
+      if (document.getElementById('attend-b').checked) attended.push('Bronwynne');
+
+      if (!prop.userData.showings) prop.userData.showings = [];
+      
+      prop.userData.showings.push({ date, time, notes, attended });
+      prop.userData.visited = true;
+      if (prop.userData.status === 'new' || prop.userData.status === 'researching') {
+        prop.userData.status = 'viewed';
+      }
+
+      savePropertiesLocal();
+      await syncPropertyToSupabase(prop);
+      hideAddShowingForm();
+      renderShowings(prop);
+      document.getElementById('modal-status-pill').textContent = getStatusLabel(prop.userData.status);
+      document.getElementById('modal-status-pill').className = `text-xs font-bold px-3 py-1 rounded-full ${getStatusColor(prop.userData.status)}`;
+      document.getElementById('modal-status-select').value = prop.userData.status;
+      renderGrid();
+    }
+
+    async function deleteShowing(index) {
+      const prop = properties.find(p => p.id === currentPropertyId);
+      if (!prop || !prop.userData.showings) return;
+      prop.userData.showings.splice(index, 1);
+      savePropertiesLocal();
+      await syncPropertyToSupabase(prop);
+      renderShowings(prop);
+      renderGrid();
+    }
+
+    // ============== FEEDBACK (STARS + PILLS) ==============
+    function renderFeedback(prop) {
+      // Stars
+      renderStars('dylan-stars', prop.userData.dylan?.stars || 0, 'dylan');
+      renderStars('bronwynne-stars', prop.userData.bronwynne?.stars || 0, 'bronwynne');
+
+      // Pills
+      renderPersonPills(prop, 'dylan');
+      renderPersonPills(prop, 'bronwynne');
+
+      // Notes
+      document.getElementById('dylan-notes').value = prop.userData.dylan?.notes || '';
+      document.getElementById('bronwynne-notes').value = prop.userData.bronwynne?.notes || '';
+      document.getElementById('couple-notes').value = prop.userData.coupleNotes || '';
+
+      // Couple avg
+      updateCoupleAverage(prop);
+    }
+
+    function renderStars(containerId, currentStars, person) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+      
+      for (let i = 1; i <= 5; i++) {
+        const star = document.createElement('span');
+        star.className = `star text-2xl ${i <= currentStars ? 'text-amber-400' : 'text-slate-200'}`;
+        star.innerHTML = '★';
+        star.onclick = async () => {
+          const prop = properties.find(p => p.id === currentPropertyId);
+          if (!prop) return;
+          if (!prop.userData[person]) prop.userData[person] = { stars: 0, pros: [], cons: [], notes: '' };
+          prop.userData[person].stars = i;
+          savePropertiesLocal();
+          await syncPropertyToSupabase(prop);
+          renderStars(containerId, i, person);
+          updateCoupleAverage(prop);
+          renderGrid();
+        };
+        container.appendChild(star);
+      }
+    }
+
+    function renderPersonPills(prop, person) {
+      const prosContainer = document.getElementById(`${person}-pros`);
+      const consContainer = document.getElementById(`${person}-cons`);
+      prosContainer.innerHTML = '';
+      consContainer.innerHTML = '';
+
+      const data = prop.userData[person] || { pros: [], cons: [] };
+
+      (data.pros || []).forEach((text, idx) => {
+        const pill = createPill(text, 'pros', () => {
+          data.pros.splice(idx, 1);
+          saveProperties();
+          renderPersonPills(prop, person);
+        });
+        prosContainer.appendChild(pill);
+      });
+
+      (data.cons || []).forEach((text, idx) => {
+        const pill = createPill(text, 'cons', () => {
+          data.cons.splice(idx, 1);
+          saveProperties();
+          renderPersonPills(prop, person);
+        });
+        consContainer.appendChild(pill);
+      });
+    }
+
+    function createPill(text, type, onRemove) {
+      const el = document.createElement('div');
+      el.className = type === 'pros' ? 'pros-pill' : 'cons-pill';
+      el.innerHTML = `
+        <span>${text}</span>
+        <span class="cursor-pointer opacity-50 hover:opacity-100 font-bold" style="font-size:9px">×</span>
+      `;
+      el.querySelector('span:last-child').onclick = (e) => {
+        e.stopImmediatePropagation();
+        onRemove();
+      };
+      return el;
+    }
+
+    async function addCustomPill(person, kind) {
+      const input = document.getElementById(`${person}-${kind}-input`);
+      if (!input || !input.value.trim()) return;
+      
+      const prop = properties.find(p => p.id === currentPropertyId);
+      if (!prop) return;
+      if (!prop.userData[person]) prop.userData[person] = { stars: null, pros: [], cons: [], notes: '' };
+      
+      const arr = prop.userData[person][kind];
+      if (!arr.includes(input.value.trim())) {
+        arr.push(input.value.trim());
+      }
+      input.value = '';
+      savePropertiesLocal();
+      await syncPropertyToSupabase(prop);
+      renderPersonPills(prop, person);
+    }
+
+    async function saveFeedbackNotes() {
+      const prop = properties.find(p => p.id === currentPropertyId);
+      if (!prop) return;
+
+      if (!prop.userData.dylan) prop.userData.dylan = { stars: null, pros: [], cons: [], notes: '' };
+      if (!prop.userData.bronwynne) prop.userData.bronwynne = { stars: null, pros: [], cons: [], notes: '' };
+
+      prop.userData.dylan.notes = document.getElementById('dylan-notes').value;
+      prop.userData.bronwynne.notes = document.getElementById('bronwynne-notes').value;
+      prop.userData.coupleNotes = document.getElementById('couple-notes').value;
+
+      savePropertiesLocal();
+      await syncPropertyToSupabase(prop);
+    }
+
+    function updateCoupleAverage(prop) {
+      const d = prop.userData.dylan?.stars || 0;
+      const b = prop.userData.bronwynne?.stars || 0;
+      const avg = (d + b) / 2;
+
+      const container = document.getElementById('couple-avg-stars');
+      container.innerHTML = '';
+      
+      if (!d && !b) {
+        document.getElementById('couple-avg-text').textContent = 'No ratings yet';
+        return;
+      }
+
+      for (let i = 1; i <= 5; i++) {
+        const s = document.createElement('span');
+        if (i <= Math.floor(avg)) {
+          s.className = 'text-amber-400';
+          s.textContent = '★';
+        } else if (i - 0.5 <= avg) {
+          s.className = 'text-amber-300';
+          s.textContent = '★';
+        } else {
+          s.className = 'text-slate-200';
+          s.textContent = '★';
+        }
+        container.appendChild(s);
+      }
+      document.getElementById('couple-avg-text').textContent = avg.toFixed(1);
+    }
+
+    async function promoteAiPillsToPersonal() {
+      const prop = properties.find(p => p.id === currentPropertyId);
+      if (!prop || !prop.aiAnalysis) return;
+
+      const ai = prop.aiAnalysis;
+
+      // Dylan
+      if (!prop.userData.dylan) prop.userData.dylan = { stars: prop.userData.dylan?.stars || null, pros: [], cons: [], notes: '' };
+      ai.pros.forEach(p => {
+        if (!prop.userData.dylan.pros.includes(p)) prop.userData.dylan.pros.push(p);
+      });
+
+      // Bronwynne
+      if (!prop.userData.bronwynne) prop.userData.bronwynne = { stars: prop.userData.bronwynne?.stars || null, pros: [], cons: [], notes: '' };
+      ai.pros.forEach(p => {
+        if (!prop.userData.bronwynne.pros.includes(p)) prop.userData.bronwynne.pros.push(p);
+      });
+
+      // Add a couple of cons too for balance
+      ai.cons.forEach(c => {
+        if (!prop.userData.dylan.cons.includes(c)) prop.userData.dylan.cons.push(c);
+        if (!prop.userData.bronwynne.cons.includes(c)) prop.userData.bronwynne.cons.push(c);
+      });
+
+      savePropertiesLocal();
+      await syncPropertyToSupabase(prop);
+      renderFeedback(prop);
+    }
+
+    // ============== ADD / IMPORT ==============
+    function showAddModal() {
+      document.getElementById('add-modal').classList.remove('hidden');
+      document.getElementById('add-modal').classList.add('flex');
+      document.getElementById('json-paste').focus();
+    }
+
+    function hideAddModal() {
+      document.getElementById('add-modal').classList.remove('flex');
+      document.getElementById('add-modal').classList.add('hidden');
+      document.getElementById('json-paste').value = '';
+    }
+
+    async function importFromJsonPaste() {
+      const raw = document.getElementById('json-paste').value.trim();
+      if (!raw) {
+        alert('Please paste the JSON block from the AI.');
+        return;
+      }
+
+      let jsonText = raw;
+
+      // Try to extract from markdown fence if present
+      const fenceMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
+      if (fenceMatch) {
+        jsonText = fenceMatch[1].trim();
+      }
+
+      let parsed;
+      try {
+        parsed = JSON.parse(jsonText);
+      } catch (e) {
+        alert('Could not parse JSON. Make sure you copied the entire object (including the opening { and closing }).\n\nError: ' + e.message);
+        return;
+      }
+
+      // Basic validation
+      if (!parsed.id || !parsed.address || !parsed.price) {
+        alert('JSON looks incomplete. It must have at minimum: id, address, and price.');
+        return;
+      }
+
+      // Prevent duplicates
+      if (properties.find(p => p.id === parsed.id)) {
+        if (!confirm('A property with this ID already exists. Add another copy?')) {
+          hideAddModal();
+          return;
+        }
+        parsed.id = parsed.id + '-' + Date.now();
+      }
+
+      // Ensure userData exists
+      if (!parsed.userData) {
+        parsed.userData = {
+          status: 'new',
+          showings: [],
+          dylan: { stars: null, pros: [], cons: [], notes: '' },
+          bronwynne: { stars: null, pros: [], cons: [], notes: '' },
+          coupleNotes: '',
+          favorite: false,
+          visited: false
+        };
+      }
+
+      parsed.addedAt = new Date().toISOString();
+
+      properties.unshift(parsed);
+      savePropertiesLocal();
+      await syncPropertyToSupabase(parsed);
+      hideAddModal();
+      renderGrid();
+      
+      // Nice toast
+      showToast(`Added ${parsed.address}. Synced to cloud — the other person will see it shortly.`);
+    }
+
+    // NEW: Direct URL analysis using Netlify Function + Grok
+    async function analyzeListingUrl() {
+      const input = document.getElementById('listing-url');
+      const statusEl = document.getElementById('analyze-status');
+      const url = (input?.value || '').trim();
+
+      if (!url || !url.includes('realtor.ca')) {
+        if (statusEl) statusEl.textContent = 'Please enter a valid realtor.ca URL';
+        return;
+      }
+
+      if (statusEl) statusEl.textContent = 'Analyzing with Grok... (this can take 10-20s)';
+
+      try {
+        const res = await fetch('/.netlify/functions/analyze-listing', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+
+        let result;
+        const contentType = res.headers.get('content-type') || '';
+
+        if (contentType.includes('application/json')) {
+          result = await res.json();
+        } else {
+          // Likely HTML error page from Netlify (404, function not found, etc.)
+          const text = await res.text();
+          throw new Error(`Function returned non-JSON (status ${res.status}). This usually means the Netlify function isn't deployed yet or there's a path issue. Raw: ${text.substring(0, 300)}`);
+        }
+
+        if (!res.ok) {
+          throw new Error(result.error || 'Analysis failed');
+        }
+
+        // Reuse the existing import logic
+        let parsed = result;
+
+        // Prevent duplicates
+        if (properties.find(p => p.id === parsed.id)) {
+          if (!confirm('A property with this ID already exists. Add another copy?')) {
+            if (statusEl) statusEl.textContent = '';
+            hideAddModal();
+            return;
+          }
+          parsed.id = parsed.id + '-' + Date.now();
+        }
+
+        if (!parsed.userData) {
+          parsed.userData = {
+            status: 'new',
+            showings: [],
+            dylan: { stars: null, pros: [], cons: [], notes: '' },
+            bronwynne: { stars: null, pros: [], cons: [], notes: '' },
+            coupleNotes: '',
+            favorite: false,
+            visited: false
+          };
+        }
+
+        parsed.addedAt = new Date().toISOString();
+
+        properties.unshift(parsed);
+        savePropertiesLocal();
+        await syncPropertyToSupabase(parsed);
+        hideAddModal();
+        renderGrid();
+
+        showToast(`Added ${parsed.address} via Grok analysis. Synced to cloud.`);
+        if (statusEl) statusEl.textContent = '';
+
+      } catch (err) {
+        console.error('Analyze error:', err);
+        if (statusEl) statusEl.textContent = 'Error: ' + (err.message || 'Failed to analyze.');
+        const hint = 'Check your Netlify site → Functions tab → analyze-listing for the real error logs. Also make sure XAI_API_KEY is set in Environment variables and you have credits at console.x.ai.';
+        console.error('Analyze failed. Full error:', err);
+        alert('Analysis failed: ' + (err.message || 'See console') + '\n\n' + hint);
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.createElement('div');
+      t.className = 'fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm px-5 py-2 rounded-3xl shadow-xl z-[200]';
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => {
+        t.style.transition = 'all 0.2s';
+        t.style.opacity = '0';
+        setTimeout(() => t.remove(), 200);
+      }, 2400);
+    }
+
+    function copyMasterPrompt() {
+      const promptText = `You are an elite Canadian real estate intelligence analyst. Your sole mission is to transform raw realtor.ca listings into clean, structured, decision-ready data + brutally honest analysis tailored to one specific buyer profile:
+
+**Buyer Profile (memorize):**
+- Young couple, early 30s, both with stable and progressing careers.
+- First home purchase.
+- Pre-approved for $950,000 CAD mortgage.
+- Target area: Kincardine, Ontario and up to 20 km radius.
+- Strong preference: new or very recent builds (ideally 2018+), out-of-town / rural / lakeside / private settings rather than in-town subdivisions.
+- Values: modern finishes, open concept, privacy on a decent lot, outdoor living (porches, decks, nature), potential to add value/finish space, quality construction, beach or Lake Huron access a major plus.
+- Practical: realistic about rural realities (septic, well or municipal water, heating costs, internet, commute).
+
+## Your Process (execute in order, no shortcuts)
+
+**STEP 1 — FETCH THE LISTING**
+Use every available tool (web_fetch, open_page, browse, search, etc.) to fully load and parse the exact URL provided by the user.
+
+If tools fail or the page is heavily JS-rendered and you only get partial content, explicitly tell the user what sections are missing and ask them to paste the visible text for: full description, property summary table, building details, rooms list, land info, and any "highlights".
+
+**STEP 2 — EXTRACT WITH SURGICAL PRECISION**
+Pull these fields exactly. Never invent data. Use null or "Not disclosed" where truly absent.
+
+Required top-level fields (exact names):
+id, sourceUrl, mlsNumber, address, fullAddress, price (integer), priceDisplay, bedrooms, bathrooms, sqftRange, lotSize, yearBuilt, propertyType, style, ownership, annualTaxes, water, sewer, heating, cooling, parking, basement, features (array), description (full), locationNotes, nearbyAmenities (array), daysOnMarket, agent (object), photoUrls (array of highres urls), virtualTourUrl.
+
+**STEP 3 — BUYER-FIT ANALYSIS**
+Produce aiAnalysis with:
+budgetFit, locationScore (1-10), newBuildScore (1-10), lifestyleScore (1-10), overallMatchScore (1-10), summary (2-4 sentences), pros (array), cons (array), recommendedAction.
+
+**STEP 4 — OUTPUT**
+Start with a single markdown fenced block labeled property-data containing ONLY the valid JSON object.
+Then add a short human "Listing Intelligence Brief".
+
+Full detailed instructions are in the PROMPT.md file that came with this dashboard. Use the exact field names so it imports cleanly.`;
+
+      navigator.clipboard.writeText(promptText).then(() => {
+        const orig = event.currentTarget;
+        showToast('Master prompt copied. Paste it + the URL into Grok.');
+      }).catch(() => {
+        // fallback
+        prompt('Copy this entire prompt:', promptText);
+      });
+    }
+
+    function showPromptInApp() {
+      const modal = document.getElementById('add-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      
+      const ta = document.getElementById('json-paste');
+      ta.value = 'Full master prompt is in the PROMPT.md file next to this HTML.\n\nQuick version (copy the big block from PROMPT.md and use it with any realtor.ca URL).';
+      ta.select();
+    }
+
+    // ============== UTILS ==============
+    function exportData() {
+      const dataStr = JSON.stringify(properties, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `bd-home-hunt-${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function downloadDataAsJson() {
+      // Clean export specifically named "data.json" for easy static hosting as shared truth
+      const dataStr = JSON.stringify(properties, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'data.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Downloaded data.json — upload/replace this on your host to share the latest with the other person.');
+    }
+
+    function importDataFromFile() {
+      // Future: could add a file input, for now the paste flow is primary.
+      alert('Use the "Add Listing" button and paste exported JSON there for now.');
+    }
+
+    async function clearAllData() {
+      if (!confirm('This will delete ALL your local data (showings, stars, notes, everything). The seed example will come back. Continue?')) return;
+      localStorage.removeItem(STORAGE_KEY);
+      
+      if (isSupabaseEnabled && supabaseClient && confirm('Also delete all data for this hunt from Supabase? (This affects both of you)')) {
+        try {
+          await supabaseClient.from('hunt_properties').delete().eq('hunt_id', HUNT_ID);
+          showToast('Cloud data also cleared.');
+        } catch (e) { console.warn(e); }
+      }
+      
+      properties = [JSON.parse(JSON.stringify(SEED_PROPERTY))];
+      savePropertiesLocal();
+      if (isSupabaseEnabled) await syncPropertyToSupabase(properties[0]);
+      renderGrid();
+      showToast('Data reset to seed example.');
+    }
+
+    function renderAiPills(containerId, items, type) {
+      const el = document.getElementById(containerId);
+      el.innerHTML = '';
+      items.forEach(text => {
+        const span = document.createElement('span');
+        span.className = type === 'pros' ? 'pros-pill' : 'cons-pill';
+        span.textContent = text;
+        el.appendChild(span);
+      });
+      if (items.length === 0) {
+        const empty = document.createElement('span');
+        empty.className = 'text-xs text-slate-400 italic';
+        empty.textContent = type === 'pros' ? 'No strong pros flagged' : 'No major cons flagged';
+        el.appendChild(empty);
+      }
+    }
+
+    function filterPropertiesOnLoad() {
+      // Initial filter is "all"
+      document.getElementById('filter-all').classList.add('bg-slate-900', 'text-white');
+    }
+
+    // Keyboard niceties
+    function initKeyboard() {
+      document.addEventListener('keydown', (e) => {
+        if (e.key === '/' && document.activeElement.tagName === 'BODY') {
+          e.preventDefault();
+          document.getElementById('search-input').focus();
+        }
+        if (e.key === 'Escape') {
+          const detail = document.getElementById('detail-modal');
+          const add = document.getElementById('add-modal');
+          if (!detail.classList.contains('hidden')) {
+            closeDetailModal();
+          } else if (!add.classList.contains('hidden')) {
+            hideAddModal();
+          }
+        }
+      });
+    }
+
+    function initSortAndSearch() {
+      document.getElementById('search-input').addEventListener('input', filterProperties);
+      document.getElementById('sort-select').addEventListener('change', filterProperties);
+    }
+
+    // Main bootstrap
+    async function initApp() {
+      initTailwind();
+      await loadProperties();   // handles Supabase or local fallback + seeds realtime
+      renderGrid();
+      updateHeaderStats();
+      filterPropertiesOnLoad();
+      initKeyboard();
+      initSortAndSearch();
+
+      // Make sure the seed has good defaults if old data
+      const seed = properties.find(p => p.id === SEED_PROPERTY.id);
+      if (seed && (!seed.userData || !seed.aiAnalysis)) {
+        Object.assign(seed, JSON.parse(JSON.stringify(SEED_PROPERTY)));
+        savePropertiesLocal();
+        await syncPropertyToSupabase(seed);
+        renderGrid();
+      }
+
+      // Note for hosted
+      if (location.protocol !== 'file:') {
+        console.log('%c[BD Hunt] Running from a web server.', 'color:#64748b');
+      }
+
+      // Expose helpers
+      window.BD_HUNT = { 
+        getProperties: () => properties, 
+        export: exportData,
+        downloadDataJson: downloadDataAsJson,
+        reloadShared: () => location.reload(),
+        forceResync: async () => { 
+          await loadProperties(); 
+          renderGrid(); 
+          updateSupabaseStatusUI();
+          showToast('Resynced from Supabase');
+        },
+        testSupabase: async () => {
+          if (!isSupabaseEnabled || !supabaseClient) {
+            console.log('Supabase not enabled');
+            alert('Supabase client not initialized. Check your URL and key in the script.');
+            return;
+          }
+          try {
+            const { data, error } = await supabaseClient
+              .from('hunt_properties')
+              .select('id, hunt_id', { count: 'exact' })
+              .eq('hunt_id', HUNT_ID);
+            console.log('[Supabase Test]', { count: data?.length, error, huntId: HUNT_ID });
+            if (error) {
+              alert('Supabase error: ' + error.message);
+            } else {
+              alert(`Supabase OK! Found ${data.length} properties for hunt "${HUNT_ID}"`);
+            }
+          } catch (e) {
+            console.error(e);
+            alert('Test failed: ' + e.message);
+          }
+        }
+      };
+      
+      // Show live badge
+      const badge = document.getElementById('live-badge');
+      if (badge && isSupabaseEnabled) {
+        badge.classList.remove('hidden');
+        badge.title = 'Realtime sync active via Supabase — changes appear instantly for the other person';
+      } else if (!isSupabaseEnabled) {
+        // Show a visible warning if Supabase didn't connect
+        const header = document.querySelector('header') || document.body;
+        const warn = document.createElement('div');
+        warn.style.cssText = 'background:#fee2e2;color:#991b1b;padding:4px 12px;font-size:12px;border-radius:6px;margin:4px 0;text-align:center;';
+        warn.innerHTML = '⚠️ Supabase not connected — open DevTools Console (F12) and check the red/yellow messages. Re-run schema.sql if needed.';
+        const top = document.querySelector('.app-container') || document.body.firstElementChild;
+        if (top) top.parentNode.insertBefore(warn, top);
+      }
+
+      // Update the new Supabase status pill (initial)
+      updateSupabaseStatusUI(isSupabaseEnabled);
+      if (isSupabaseEnabled) {
+        // Initial optimistic realtime status
+        setTimeout(() => updateRealtimeStatus('SUBSCRIBED'), 500);
+      }
+
+      // Helpful deploy reminder when running locally (double-click or localhost)
+      if (location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+        const deployNote = document.createElement('div');
+        deployNote.style.cssText = 'margin: 8px 12px; padding: 8px 12px; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; font-size: 13px; color: #92400e;';
+        deployNote.innerHTML = 'To get a real link for your phone (and share with your partner): <a href="https://app.netlify.com/drop" target="_blank" style="color:#92400e; font-weight:600; text-decoration:underline;">drag this whole folder to Netlify Drop</a> → 30-second public URL. See LOCAL_ACCESS.txt for details.';
+        const container = document.querySelector('.app-container') || document.body;
+        container.insertBefore(deployNote, container.firstChild);
+      }
+
+      console.log('%c[BD Hunt] Ready (Supabase realtime enabled: ' + isSupabaseEnabled + '). Changes will sync live between devices.', 'color:#14b8a6');
+    }
+
+    // Boot
+    window.onload = initApp;
+  </script>
+</body>
+</html>

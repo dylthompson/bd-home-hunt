@@ -1,0 +1,106 @@
+[
+  {
+    "id": "p-29727693",
+    "sourceUrl": "https://www.realtor.ca/real-estate/29727693/14-sunset-place-huron-kinloss",
+    "mlsNumber": "X13106842",
+    "address": "14 Sunset Place",
+    "fullAddress": "14 SUNSET PLACE, Huron-Kinloss, Ontario N2Z2X3",
+    "price": 895000,
+    "priceDisplay": "$895,000",
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "sqftRange": "1500 - 2000",
+    "lotSize": "102 x 206 FT",
+    "yearBuilt": 2020,
+    "propertyType": "Single Family",
+    "style": "Raised Bungalow",
+    "ownership": "Freehold",
+    "annualTaxes": 6412,
+    "water": "Municipal",
+    "sewer": "Septic System",
+    "heating": "Forced air (Natural gas)",
+    "cooling": "Central air conditioning",
+    "parking": "Attached Garage, 8 spaces total",
+    "basement": "Partially finished with bathroom rough-in and large windows",
+    "features": [
+      "Cul-de-sac",
+      "Level lot",
+      "Built 2020",
+      "Backup gas generator",
+      "Tankless water heater",
+      "Covered back porch (24' x 10')",
+      "Open concept main floor",
+      "Double oven + quality appliances",
+      "Fireplace",
+      "Sump pump"
+    ],
+    "description": "Welcome to 14 Sunset Place. Built in 2020, this modern raised bungalow offers a bright, open-concept main living area featuring stylish lighting, contemporary fixtures, quality appliances, sleek cabinetry and a double oven. Thoughtfully designed for privacy, the spacious primary bedroom is located on the north side of the home, while two generously sized bedrooms are positioned on the south end. Set on just under a half-acre lot in a prestigious cul-de-sac, surrounded by mature trees and natural beauty, this property is just a short stroll to the beach, a perfect location for year-round living or as a luxurious cottage retreat. Enjoy added peace of mind with a built-in backup gas generator, ensuring comfort in every season. Step outside to the expansive 24' x 10' covered back porch, an ideal space to relax and take in the breathtaking sunsets, where the sky transforms into the signature pink hues of Lake Huron. The lower level offers incredible potential, with a bathroom rough-in and large windows. It's a blank canvas ready for your vision. Located in the sought-after community of Point Clark, this home appeals to families and retirees alike. Enjoy convenient access to local shops, dining, the beach, and the iconic lighthouse.",
+    "locationNotes": "Point Clark, Huron-Kinloss. Cross Streets: Huron Rd & Sunset Place. ~15 km south of Kincardine (\u224812-15 min drive). Short stroll to Lake Huron beach and lighthouse. Prestigious quiet cul-de-sac surrounded by mature trees.",
+    "nearbyAmenities": [
+      "Beach",
+      "Point Clark Lighthouse",
+      "Golf Nearby",
+      "Park",
+      "Community Centre"
+    ],
+    "daysOnMarket": 23,
+    "agent": {
+      "name": "Jeff Zettle",
+      "brokerage": "Royal LePage Exchange Realty Co.",
+      "phone": "519-386-4800"
+    },
+    "photoUrls": [
+      "https://cdn.realtor.ca/listings/TS639139195214730000/reb47/highres/2/x13106842_1.jpg",
+      "https://cdn.realtor.ca/listings/TS639139195214730000/reb47/highres/2/x13106842_2.jpg",
+      "https://cdn.realtor.ca/listings/TS639139195214730000/reb47/highres/2/x13106842_3.jpg",
+      "https://cdn.realtor.ca/listings/TS639139195214730000/reb47/highres/2/x13106842_20.jpg",
+      "https://cdn.realtor.ca/listings/TS639139195214730000/reb47/highres/2/x13106842_22.jpg"
+    ],
+    "virtualTourUrl": "https://show.tours/14sunsetplace?b=0",
+    "aiAnalysis": {
+      "budgetFit": "Excellent \u2014 $55k under the $950k pre-approval. Leaves comfortable room for closing costs, first-time buyer land transfer tax (with available rebates in Ontario), and any immediate updates.",
+      "locationScore": 9,
+      "newBuildScore": 10,
+      "lifestyleScore": 9,
+      "overallMatchScore": 9.0,
+      "summary": "Outstanding alignment with your criteria. 2020 raised bungalow on a private half-acre cul-de-sac in Point Clark \u2014 15 km south of Kincardine and a short walk to Lake Huron beach. Modern finishes, generator, covered sunset porch, and lower-level potential check nearly every box for a first home with room to grow.",
+      "pros": [
+        "True 2020 construction (rare quality in the area)",
+        "Private 0.48 acre lot in quiet cul-de-sac",
+        "Walk to beach + iconic Point Clark sunsets",
+        "Modern open-concept with quality finishes & appliances",
+        "Backup generator included (huge peace of mind)",
+        "Large covered porch for 3-season living",
+        "Lower level roughed for future expansion",
+        "Under budget with buffer"
+      ],
+      "cons": [
+        "Septic system \u2014 budget for regular pumping & eventual replacement (typical for rural properties)",
+        "Lower level is currently unfinished (potential, not living space today)",
+        "23 days on market \u2014 ask about motivation and any price flexibility",
+        "Rural location: confirm high-speed internet options and winter road maintenance"
+      ],
+      "recommendedAction": "Schedule a private showing this week. Strongest new-build + lakeside candidate seen so far. Prioritize asking about septic history, utility costs, and any flexibility on price."
+    },
+    "userData": {
+      "status": "new",
+      "showings": [],
+      "dylan": {
+        "stars": null,
+        "pros": [],
+        "cons": [],
+        "notes": ""
+      },
+      "bronwynne": {
+        "stars": null,
+        "pros": [],
+        "cons": [],
+        "notes": ""
+      },
+      "coupleNotes": "",
+      "favorite": false,
+      "visited": false
+    },
+    "addedAt": "2026-06-02T10:00:00.000Z"
+  }
+]
