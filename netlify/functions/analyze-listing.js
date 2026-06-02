@@ -65,8 +65,31 @@ export default async (req, context) => {
 
     html = await pageResponse.text();
 
+    // Basic cleaning to reduce noise and size (remove scripts, styles, etc.)
+    html = html.replace(/<script[\s\S]*?<\/script>/gi, '')
+               .replace(/<style[\s\S]*?<\/style>/gi, '')
+               .replace(/<noscript[\s\S]*?<\/noscript>/gi, '')
+               .replace(/\s+/g, ' ')
+               .trim();
+
+    // Detect if likely blocked by anti-bot (Cloudflare, etc.)
+    const lower = html.toLowerCase();
+    const isBlocked = html.length < 3000 ||
+                      lower.includes('cf-challenge') ||
+                      lower.includes('challenge-platform') ||
+                      lower.includes('attention required') ||
+                      lower.includes('just a moment') ||
+                      lower.includes('cloudflare') ||
+                      lower.includes('access denied') ||
+                      lower.includes('bot detected') ||
+                      lower.includes('captcha');
+
+    if (isBlocked) {
+      console.warn('Possible block page detected for', url);
+    }
+
     // Truncate if extremely long to stay under token limits
-    const maxHtmlLength = 12000;
+    const maxHtmlLength = 15000;
     if (html.length > maxHtmlLength) {
       html = html.substring(0, maxHtmlLength) + '\n... [content truncated for length]';
     }
@@ -90,9 +113,10 @@ Your job is to turn the provided realtor.ca HTML into clean, structured JSON tha
 **Output rules (critical):**
 - Return ONLY a single valid JSON object. No explanations, no markdown fences, no extra text before or after.
 - Use the exact field names below.
-- If a value is missing or unclear from the HTML, use null (or "Not disclosed" for strings where appropriate).
+- If a value is missing or unclear from the (possibly partial or blocked) HTML, use null (or "Not disclosed" for strings where appropriate). Do not hallucinate data.
 - Prices and taxes as plain integers (no $ or commas).
 - For arrays, be selective and high-signal.
+- If the content is clearly blocked/limited, still produce the JSON structure with as many fields as possible (even if mostly null) and put a note in aiAnalysis.summary and aiAnalysis.cons about the limitation.
 
 **Required top-level fields (exact names and types):**
 - id: string (prefer numeric ID from URL path, e.g. "29727693", fallback to MLS number)
@@ -145,10 +169,12 @@ Your job is to turn the provided realtor.ca HTML into clean, structured JSON tha
 
 The user will provide the listing URL and the raw HTML content below. Extract everything possible directly from it.`;
 
+  const blockNote = isBlocked ? '\n\nNOTE: The fetched page content appears to be blocked or heavily limited by the site\'s anti-bot protection (common on realtor.ca). Extract whatever is possible from the limited content, set most fields to null if unclear, and in aiAnalysis include a clear note about the fetch being blocked and recommend the user try the manual "Paste AI output" method with the master prompt in a Grok chat (which may have better browsing access) or try a different listing.' : '';
+
   const userMessage = `Listing URL: ${url}
 
 Raw HTML content of the page (cleaned/truncated):
-${html}
+${html}${blockNote}
 
 Extract the data into the exact JSON schema described in the system prompt. Output only the JSON object.`;
 
