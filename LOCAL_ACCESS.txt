@@ -8,8 +8,16 @@ Quick version:
 1. Create empty repo at https://github.com/new (do NOT initialize with README)
 2. In this folder run the three commands GitHub shows you (git remote add..., git push...)
 3. In Netlify: Add new site → Import from Git → select your repo
-4. Set Base/Build/Publish settings as described in GITHUB_SETUP.md
-5. Add XAI_API_KEY in Environment variables (very important for the "Analyze URL" feature)
+4. On the configure screen:
+   - Base directory: (leave blank)
+   - Build command: (leave blank)
+   - Publish directory: (leave blank or ".")
+   - **Environment variables** (on the same screen): 
+     - Key: XAI_API_KEY   Value: your key from console.x.ai
+     - (Optional) Key: GROK_MODEL   Value: grok-4.3
+5. Deploy
 6. Use the public netlify.app URL on your phone + "Add to Home Screen"
+
+Live site: https://bd-home-hunt.netlify.app/
 
 The local server has been stopped.

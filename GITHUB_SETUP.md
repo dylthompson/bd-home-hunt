@@ -48,6 +48,11 @@ After this, refresh your GitHub repo page — you should see all the files (inde
    - **Base directory**: leave blank (or type `home-hunt-supabase` if your repo has the code inside a folder)
    - **Build command**: leave completely blank
    - **Publish directory**: leave blank or put `.`
+
+   **Environment variables section** (on the same screen — you can do it now):
+   - Add `XAI_API_KEY` = your key from https://console.x.ai/
+   - (Optional) Add `GROK_MODEL` = `grok-4.3`
+
 6. Click **"Deploy site"**.
 
 Netlify will build and deploy it. You'll get a URL like `https://something-123.netlify.app`.
@@ -62,7 +67,7 @@ After the first deploy:
 4. Add:
    - Key: `XAI_API_KEY`
    - Value: your key from https://console.x.ai/
-5. (Optional) Add `GROK_MODEL` = `grok-3`
+5. (Optional) Add `GROK_MODEL` = `grok-4.3`
 6. Save.
 7. Go to **Deploys** tab → click **"Trigger deploy"** → **"Deploy site"**.
 

@@ -153,7 +153,7 @@ Extract the data into the exact JSON schema described in the system prompt. Outp
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: process.env.GROK_MODEL || 'grok-3',   // Set GROK_MODEL env var if you want a specific model (e.g. grok-2-latest)
+        model: process.env.GROK_MODEL || 'grok-4.3',   // Set GROK_MODEL env var if you want a specific model (e.g. grok-4.3 or grok-4.3-latest). Yes, you can (and should) set GROK_MODEL=grok-4.3 in your Netlify environment variables. The correct API identifier is "grok-4.3" (hyphen, no spaces). This is the current flagship model as of 2026.
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userMessage }

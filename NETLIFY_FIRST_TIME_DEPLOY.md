@@ -79,27 +79,28 @@ Click **"Deploy site"**.
 
 Netlify will now clone your repo, build (nothing), and deploy. This usually takes 30–90 seconds.
 
-### Step 4: Add the required environment variable (XAI_API_KEY)
+### Step 4: Add the required environment variable (XAI_API_KEY) — do this in the configure screen if possible
 
-This is **critical** for the "Analyze with Grok" feature to work.
+**Yes — you can (and should) add the environment variables right there in the "Configure site and deploy" screen** before clicking Deploy site. This is actually better because your very first deploy will have the key available, and the "Analyze with Grok" feature will work immediately.
 
-1. After the deploy finishes, you will be taken to your site dashboard.
-2. In the left sidebar, click **Site configuration** (or "Site settings").
-3. Click **Environment variables**.
-4. Click **"Add a variable"** (or "Add variable").
-5. Add this:
-   - **Key**: `XAI_API_KEY`
-   - **Value**: Paste your actual xAI / Grok API key here (the long string starting with `xai-` or similar).
-   - Leave "Scopes" as default (all deploys).
-6. Click **Save**.
-7. (Optional but recommended) Add another one:
-   - **Key**: `GROK_MODEL`
-   - **Value**: `grok-3`   (or `grok-2-latest` if that's what you prefer)
+Look for the **"Environment variables"** section on that same configure page (it's usually near the bottom).
 
-8. Go back to the **Deploys** tab in the sidebar.
-9. Click the **"Trigger deploy"** button (top right) → **"Deploy site"** (or "Clear cache and deploy site").
+Add these:
 
-This redeploys with the secret key available to your serverless function.
+- **Key**: `XAI_API_KEY`
+- **Value**: Paste your actual xAI / Grok API key (the long string starting with `xai-...` from https://console.x.ai/)
+
+- (Optional but recommended) 
+  - **Key**: `GROK_MODEL`
+  - **Value**: `grok-4.3`   (or `grok-4.3-latest` if you prefer)
+
+Leave "Scopes" as the default (all deploys).
+
+Then click **"Deploy site"**.
+
+If you already clicked Deploy before adding the variables, no problem — just go to the site after it deploys, go to **Site configuration → Environment variables**, add them there, then trigger a new deploy from the Deploys tab.
+
+This environment variable is **critical** for the "Analyze with Grok" (direct URL) feature to work. The key never touches the browser — it only lives on Netlify's servers for the function.
 
 ### Step 5: Find your live URL and check the function
 

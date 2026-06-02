@@ -277,13 +277,19 @@ Use **http://localhost:8000** (the server is running) or double-click index.html
 
 Once local testing (including two-tab sync) works, deploy so it has a public URL:
 
-**Fastest (30 seconds):**
-1. Go to https://app.netlify.com/drop in your browser.
-2. Drag the entire `home-hunt-supabase` folder onto the drop zone (or at minimum: index.html, manifest.json, and data.json).
-3. You'll instantly get a public URL like `https://amazing-unicorn-123.netlify.app`.
-4. Open that URL on your iPhone (from anywhere).
-5. Add to Home Screen as above.
-6. Send the same URL to Bronwynne — both of you now have live sync from any device.
+**Fastest for a real permanent site (via Git):**
+Once your code is pushed to GitHub:
+
+1. In Netlify, go to "Add new site" → "Import an existing project" → GitHub.
+2. Select your repo.
+3. On the configure screen:
+   - Base directory: blank
+   - Build command: blank
+   - Publish directory: `.` or blank
+   - **Environment variables** (on this same screen): add `XAI_API_KEY` with your key from console.x.ai (and optionally `GROK_MODEL`)
+4. Deploy.
+
+This is much better than Drop because you get proper Git integration and the env var is set from the first deploy.
 
 This is the best way for ongoing use. Updates are just re-dragging the folder when you change something.
 
@@ -349,7 +355,7 @@ In Netlify dashboard for your site:
 - Environment variables → Add
   - Key: `XAI_API_KEY`
   - Value: your key from https://console.x.ai/
-- (Optional) `GROK_MODEL` = grok-3 (or grok-2-latest etc.)
+- (Optional) `GROK_MODEL` = grok-4.3 (or grok-4.3-latest etc.)
 
 Redeploy once after adding the variable.
 
