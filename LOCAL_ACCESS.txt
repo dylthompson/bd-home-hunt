@@ -1,42 +1,15 @@
-BD Home Hunt - How to get a real phone link
+=== BD Home Hunt - Phone Access ===
 
-=== THE KEY INSIGHT ===
-Supabase = your live backend (database + realtime sync)
-The dashboard itself (index.html + manifest) is a static website.
-Static websites need to be hosted somewhere (Netlify, GitHub Pages, Vercel, etc.)
-You can't just "open it from Supabase".
+The proper way is to host on Netlify connected to GitHub (for a permanent public link).
 
-=== FASTEST WAY TO A PHONE LINK (30 seconds) ===
-1. Go to https://app.netlify.com/drop in your browser
-2. Drag the entire "home-hunt-supabase" folder from Finder onto the drop zone
-3. Wait a few seconds
-4. Copy the URL it gives you (something like https://cool-unicorn-123.netlify.app)
-5. Open that URL on your iPhone
-6. (Recommended) Share button → "Add to Home Screen"
+See the file GITHUB_SETUP.md in this folder for the complete beginner step-by-step (create GitHub repo → push → connect to Netlify).
 
-This gives you a real public link that works from anywhere.
-The Supabase realtime still works perfectly.
+Quick version:
+1. Create empty repo at https://github.com/new (do NOT initialize with README)
+2. In this folder run the three commands GitHub shows you (git remote add..., git push...)
+3. In Netlify: Add new site → Import from Git → select your repo
+4. Set Base/Build/Publish settings as described in GITHUB_SETUP.md
+5. Add XAI_API_KEY in Environment variables (very important for the "Analyze URL" feature)
+6. Use the public netlify.app URL on your phone + "Add to Home Screen"
 
-You can re-drag the folder anytime to update.
-
-=== AFTER YOU HAVE THE LINK ===
-- Open on phone → Add to Home Screen for app-like experience
-- Share the same link with your partner
-- Both of you can add/edit/rate properties and see changes live
-
-The local server stuff is no longer needed (and was causing the firewall popups).
-
-=== FOR THE "ANALYZE URL" FEATURE (paste realtor.ca link directly) ===
-After deploying:
-
-1. In your Netlify dashboard → Site settings → Environment variables
-2. Add a variable:
-   Key: XAI_API_KEY
-   Value: your xAI Grok API key (get from https://console.x.ai/ )
-
-   (Optional) Key: GROK_MODEL
-   Value: grok-3   (or grok-2-latest etc. if you have access to a specific one)
-3. Redeploy (or it will pick it up on next deploy)
-
-Then in the app, the "paste a realtor.ca URL" option will call Grok automatically in the background using your key (server-side, key never exposed to browser).
-
+The local server has been stopped.
