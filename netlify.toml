@@ -1,0 +1,9 @@
+[build]
+  # No build command needed - this is a static site + functions
+  command = ""
+  # Publish the root (where index.html lives)
+  publish = "."
+
+[functions]
+  # Functions are in netlify/functions (Netlify default, but explicit is safer)
+  directory = "netlify/functions"
