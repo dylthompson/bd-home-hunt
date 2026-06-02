@@ -1,0 +1,108 @@
+{
+  "project": {
+    "name": "BD Home Hunt",
+    "description": "Realtime collaborative house-hunting dashboard for Bronwynne & Dylan (Kincardine, ON area). Static frontend with Supabase backend + Grok-powered listing analysis.",
+    "date_created": "2026-06",
+    "status": "Live and actively usable",
+    "purpose": "Replace clunky realtor.ca + spreadsheet workflow with a clean, mobile-friendly, realtime tool for tracking showings, feedback (stars + pros/cons from both people), and AI-assisted analysis."
+  },
+  "live_urls": {
+    "production": "https://bd-home-hunt.netlify.app/",
+    "github": "https://github.com/dylthompson/bd-home-hunt",
+    "local_dev": "http://localhost:8000 (after running python3 -m http.server 8000)"
+  },
+  "architecture": {
+    "frontend": "Single-file static app (index.html) with Tailwind CDN, vanilla JS, PWA manifest. Fully client-side except for the Netlify Function.",
+    "backend": "Supabase (Postgres + Realtime). Table: hunt_properties (id, hunt_id, data jsonb). RLS scoped to hunt_id = 'bd-kincardine-2026'.",
+    "ai_integration": "Netlify serverless function (analyze-listing.js) that fetches realtor.ca pages (with anti-bot headers + HTML fallback) and calls xAI Grok API for structured extraction.",
+    "hosting": "Netlify (static files + functions). GitHub for version control and auto-deploys.",
+    "data_model": "Each property is a full object matching the schema from the master prompt (id, sourceUrl, price, beds, baths, aiAnalysis with scores + pros/cons, userData for showings + dual feedback, etc.)."
+  },
+  "key_features": [
+    "Dashboard grid with filters (New builds, Out of town, Not viewed, search, sort by AI match/price)",
+    "Property cards showing price, stats, AI match score, status badge, quick summary",
+    "Detail modal with three tabs: Overview (AI analysis + facts + description), Showings (log + history), Feedback (independent Dylan/Bronwynne 5-star + pros/cons pills + private notes + shared couple notes + average)",
+    "Add listing: Paste JSON (legacy) OR direct realtor.ca URL → Analyze with Grok (server-side) OR URL + pasted HTML fallback for blocked pages",
+    "Delete cards (trash on card + Delete in modal) with confirmation and realtime sync",
+    "Realtime sync across tabs/devices via Supabase",
+    "LocalStorage fallback + export (JSON + data.json)",
+    "PWA: Add to Home Screen on iPhone/Android",
+    "Stats header (active, viewed, couple avg rank)",
+    "Master prompt available in-app for manual use with Claude or other models"
+  ],
+  "current_state": {
+    "deployed": true,
+    "github_connected": true,
+    "supabase_configured": true,
+    "grok_integration": "Live via Netlify function + XAI_API_KEY + GROK_MODEL=grok-4.3",
+    "seed_data": "14 Sunset Place (Huron-Kinloss) is present as the initial example",
+    "known_limitations": [
+      "realtor.ca frequently blocks server-side fetches (Incapsula/Cloudflare). The HTML paste fallback + manual master-prompt-in-chat are the reliable paths for good data.",
+      "No photo uploads or showing photos yet",
+      "No user accounts yet (shared via secret HUNT_ID in Supabase RLS)"
+    ],
+    "tested_features": [
+      "Add via URL + HTML fallback",
+      "Rate properties (stars)",
+      "Log showings",
+      "Pros/cons pills",
+      "Delete cards",
+      "Realtime across tabs",
+      "PWA install on iPhone"
+    ]
+  },
+  "configuration": {
+    "netlify_env_vars": {
+      "required": ["XAI_API_KEY"],
+      "optional": ["GROK_MODEL (default: grok-4.3)"]
+    },
+    "supabase": {
+      "table": "hunt_properties",
+      "hunt_id": "bd-kincardine-2026",
+      "rls_policy": "full access when hunt_id matches"
+    },
+    "grok": {
+      "default_model": "grok-4.3",
+      "prompt": "Embedded in netlify/functions/analyze-listing.js (based on the master prompt in PROMPT.md)"
+    }
+  },
+  "how_to_use": {
+    "add_listing": "Use 'Or paste a realtor.ca URL' + optional HTML textarea (copy from browser View Page Source when blocked). Or use the legacy Paste JSON flow with the master prompt.",
+    "collaborate": "Both people use the same public URL. Changes sync in realtime via Supabase.",
+    "delete": "Trash icon on card (hover to reveal) or Delete button in the detail modal.",
+    "phone": "Open the Netlify URL in Safari → Share → Add to Home Screen."
+  },
+  "how_to_develop": {
+    "local": "Double-click index.html or run `python3 -m http.server 8000`",
+    "update": "Edit → git commit + push → Netlify auto-deploys",
+    "test_analyze": "Use the live site or local server. The function will hit realtor.ca (may be blocked → use HTML paste)."
+  },
+  "files_of_note": [
+    "index.html (the entire app)",
+    "netlify/functions/analyze-listing.js (Grok integration + scraping + fallback)",
+    "netlify.toml (explicit static + functions config)",
+    "PROJECT_STATUS.md (detailed markdown status)",
+    "GITHUB_SETUP.md + NETLIFY_FIRST_TIME_DEPLOY.md + NOW_PUSH_DONE_NEXT.md",
+    "SUPABASE_SETUP.md (backend setup)",
+    "PROMPT.md (the master extraction prompt)",
+    "LOCAL_ACCESS.txt (quick phone instructions)",
+    "data.json (seed data)"
+  ],
+  "next_ideas": [
+    "Make HTML paste more automatic (button to open URL + copy instructions)",
+    "Photo uploads for showings (Supabase Storage)",
+    "Comparison view between multiple properties",
+    "Price history / market comps",
+    "Offer / negotiation tracker",
+    "Dark mode",
+    "PDF export of top properties",
+    "Browser extension or bookmarklet for one-click add from realtor.ca",
+    "Better mobile experience (bottom sheet for modal)"
+  ],
+  "history_highlights": {
+    "initial_seed": "14 Sunset Place was the first property, extracted with high quality (likely via Grok chat browsing).",
+    "challenges_solved": "realtor.ca scraping blocks → added robust HTML paste fallback + block detection + graceful UI messaging.",
+    "key_additions": "Delete cards, realtime DELETE handling, trash icons, modal delete button, grok-4.3 default, netlify.toml, PWA improvements, many docs for future-you."
+  },
+  "notes_for_future": "This project exists because you had a clear, specific pain point and we iterated directly in the codebase. The chat context + all these .md files should let you (or future Grok) pick it up quickly. The live site + GitHub mean you can keep using and improving it indefinitely."
+}
